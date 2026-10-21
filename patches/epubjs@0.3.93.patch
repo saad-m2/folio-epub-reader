@@ -1,0 +1,108 @@
+diff --git a/lib/managers/continuous/index.js b/lib/managers/continuous/index.js
+index 491287623a3a45d6f8d63044cb5925eaa5df53f5..54ce92eaf72ab7acff867abafe5ed36829015b9e 100644
+--- a/lib/managers/continuous/index.js
++++ b/lib/managers/continuous/index.js
+@@ -365,11 +365,12 @@ class ContinuousViewManager extends _default2.default {
+   }
+ 
+   addEventListeners(stage) {
+-    window.addEventListener("unload", function (e) {
++    this._onUnload = function (e) {
+       this.ignore = true; // this.scrollTo(0,0);
+ 
+       this.destroy();
+-    }.bind(this));
++    }.bind(this);
++    window.addEventListener("unload", this._onUnload);
+     this.addScrollListeners();
+ 
+     if (this.isPaginated && this.settings.snap) {
+@@ -403,6 +404,8 @@ class ContinuousViewManager extends _default2.default {
+ 
+   removeEventListeners() {
+     var scroller;
++    window.removeEventListener("unload", this._onUnload);
++    this._onUnload = undefined;
+ 
+     if (!this.settings.fullsize) {
+       scroller = this.container;
+diff --git a/lib/managers/default/index.js b/lib/managers/default/index.js
+index 4f56aafcb2b987af310b1a52411731a4e3e83650..19584e58b221df4ce041dad25a66bb6db7a63bf1 100644
+--- a/lib/managers/default/index.js
++++ b/lib/managers/default/index.js
+@@ -113,9 +113,10 @@ class DefaultViewManager {
+ 
+   addEventListeners() {
+     var scroller;
+-    window.addEventListener("unload", function (e) {
++    this._onUnload = function (e) {
+       this.destroy();
+-    }.bind(this));
++    }.bind(this);
++    window.addEventListener("unload", this._onUnload);
+ 
+     if (!this.settings.fullsize) {
+       scroller = this.container;
+@@ -129,6 +130,8 @@ class DefaultViewManager {
+ 
+   removeEventListeners() {
+     var scroller;
++    window.removeEventListener("unload", this._onUnload);
++    this._onUnload = undefined;
+ 
+     if (!this.settings.fullsize) {
+       scroller = this.container;
+diff --git a/src/managers/continuous/index.js b/src/managers/continuous/index.js
+index d61f8f76c215589ddc2c5e1fde4262db76585de8..063768ddf7ff7462b1a9cc68268721cf5e9ffb22 100644
+--- a/src/managers/continuous/index.js
++++ b/src/managers/continuous/index.js
+@@ -398,11 +398,12 @@ class ContinuousViewManager extends DefaultViewManager {
+ 
+ 	addEventListeners(stage){
+ 
+-		window.addEventListener("unload", function(e){
++		this._onUnload = function(e){
+ 			this.ignore = true;
+ 			// this.scrollTo(0,0);
+ 			this.destroy();
+-		}.bind(this));
++		}.bind(this);
++		window.addEventListener("unload", this._onUnload);
+ 
+ 		this.addScrollListeners();
+ 
+@@ -442,6 +443,8 @@ class ContinuousViewManager extends DefaultViewManager {
+ 
+ 	removeEventListeners(){
+ 		var scroller;
++		window.removeEventListener("unload", this._onUnload);
++		this._onUnload = undefined;
+ 
+ 		if(!this.settings.fullsize) {
+ 			scroller = this.container;
+diff --git a/src/managers/default/index.js b/src/managers/default/index.js
+index 2812d878ad8eaa773abe5a55dbdfce7eec1f2a04..555ad6eed84159aa7858fc4eaa1af82a3403aa66 100644
+--- a/src/managers/default/index.js
++++ b/src/managers/default/index.js
+@@ -117,9 +117,10 @@ class DefaultViewManager {
+ 	addEventListeners(){
+ 		var scroller;
+ 
+-		window.addEventListener("unload", function(e){
++		this._onUnload = function(e){
+ 			this.destroy();
+-		}.bind(this));
++		}.bind(this);
++		window.addEventListener("unload", this._onUnload);
+ 
+ 		if(!this.settings.fullsize) {
+ 			scroller = this.container;
+@@ -133,6 +134,8 @@ class DefaultViewManager {
+ 
+ 	removeEventListeners(){
+ 		var scroller;
++		window.removeEventListener("unload", this._onUnload);
++		this._onUnload = undefined;
+ 
+ 		if(!this.settings.fullsize) {
+ 			scroller = this.container;

@@ -1,0 +1,19 @@
+allowBuilds:
+  core-js: false
+  electron: true
+  electron-winstaller: true
+  es5-ext: false
+  esbuild: true
+  libxmljs2: true
+blockExoticSubdeps: false
+overrides:
+  '@xmldom/xmldom': 0.9.12
+  vite: 6.4.3
+  tar: 7.5.22
+nodeLinker: hoisted
+onlyBuiltDependencies:
+  - electron
+  - esbuild
+  - libxmljs2
+patchedDependencies:
+  epubjs@0.3.93: patches/epubjs@0.3.93.patch

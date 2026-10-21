@@ -44,3 +44,6 @@ tests/fixtures/*.epub
 
 # Local fixture archive; regenerate fixtures with the project scripts.
 /list.zip
+
+# Local editor backups.
+*.bak

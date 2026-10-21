@@ -1,0 +1,22 @@
+{
+  "name": "epub-reader-renderer-spike",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.5.1",
+  "description": "Disposable Electron + epub.js renderer spike",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.cjs",
+    "test:smoke": "electron test/smoke.cjs",
+    "test:focused-rerun": "set SPIKE_FOCUSED_RERUN=1&& electron .",
+    "test:settled-appearance": "set SPIKE_SETTLED_APPEARANCE=1&& electron ."
+  },
+  "dependencies": {
+    "epubjs": "0.3.93",
+    "jszip": "3.10.1"
+  },
+  "devDependencies": {
+    "electron": "38.7.2"
+  }
+}

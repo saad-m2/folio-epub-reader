@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' blob: data:; script-src 'self'; style-src 'self' 'unsafe-inline' blob:; img-src 'self' blob: data:; font-src 'self' blob: data:; connect-src 'none'; object-src 'none'; frame-src blob: 'self'; base-uri 'none'; form-action 'none'">
+  <title>EPUB renderer spike</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <strong>EPUB.js spike</strong>
+    <select id="fixture" aria-label="Fixture">
+      <option value="alice-gutenberg.epub">Alice (Project Gutenberg)</option>
+      <option value="ordinary-epub2.epub">Ordinary EPUB 2</option>
+      <option value="toc-and-images.epub">TOC + images + CSS</option>
+      <option value="awkward-security.epub">Awkward/security fixture</option>
+    </select>
+    <button id="loadFixture">Load fixture</button>
+    <button id="openFile">Open local EPUB…</button>
+    <select id="toc" aria-label="Table of contents"><option>Table of contents</option></select>
+    <button id="mode">Switch to paginated</button>
+    <button id="prev" aria-label="Previous page">◀</button>
+    <button id="next" aria-label="Next page">▶</button>
+  </header>
+  <section class="appearance">
+    <label>Font <input id="fontSize" type="range" min="80" max="180" value="100"><output id="fontOut">100%</output></label>
+    <label>Margins <input id="margin" type="range" min="0" max="64" value="20"><output id="marginOut">20px</output></label>
+    <label>Line spacing <input id="lineSpacing" type="range" min="100" max="220" value="165"><output id="lineSpacingOut">1.65</output></label>
+    <label>Paragraph spacing <input id="paragraphSpacing" type="range" min="0" max="48" value="16"><output id="paragraphSpacingOut">16px</output></label>
+    <label>Theme <select id="theme"><option>light</option><option>sepia</option><option>dark</option></select></label>
+    <button id="save">Save position</button>
+    <button id="reload">Reload + restore</button>
+    <span id="status" role="status">Choose a fixture.</span>
+  </section>
+  <main id="viewer" tabindex="0" aria-label="EPUB reading surface"></main>
+  <button id="translate" hidden>Translate</button>
+  <footer><span id="location">No location</span><span id="selection">No selection</span><span id="security">Security not checked</span></footer>
+  <script src="../node_modules/jszip/dist/jszip.min.js"></script>
+  <script src="../node_modules/epubjs/dist/epub.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

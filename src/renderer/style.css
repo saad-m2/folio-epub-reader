@@ -1,0 +1,57 @@
+:root { color-scheme: dark; font-family: "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #111214; }
+.app-reading { padding: 0 !important; }
+.reader-main { margin: 0 !important; max-width: none !important; }
+:is(button, [href], [tabindex]):focus-visible { outline: 3px solid #8bd0ff; outline-offset: 2px; }
+.library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 24px; margin: 24px 0; }
+.book-card { min-width: 0; cursor: default; }
+.book-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.book-card h2 { display: block; font-size: 1rem; margin: 12px 0 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.book-card p { display: block; margin: 4px 0; color: #b8b8bd; }
+.cover-fallback { align-items: center; background: linear-gradient(145deg, #41506e, #1a2030); border: 1px solid #637397; border-radius: 4px; display: flex; font-weight: 700; height: 250px; justify-content: center; letter-spacing: .14em; }
+.cover { border: 1px solid #637397; border-radius: 4px; display: block; height: 250px; object-fit: cover; width: 100%; }
+.missing-dialog { background: #202126; border: 1px solid #727681; border-radius: 6px; display: grid; gap: 12px; left: 50%; max-width: 420px; padding: 24px; position: fixed; top: 50%; transform: translate(-50%, -50%); width: calc(100% - 48px); }
+.reader { background: #fff; height: 100vh; height: 100dvh; min-height: 320px; overflow: hidden; position: relative; }
+.reader-toolbar-trigger { background: transparent; border: 0; cursor: pointer; height: 18px; left: 0; position: absolute; right: 0; top: 0; width: 100%; z-index: 2; }
+.reader-toolbar-trigger:focus-visible { background: #202126; height: 28px; }
+.reader-toolbar { align-items: center; background: #202126; box-shadow: 0 3px 12px #0008; display: flex; flex-wrap: wrap; gap: 10px; left: 0; max-height: 50vh; opacity: 0; overflow: auto; padding: 12px; pointer-events: none; position: absolute; right: 0; top: 0; visibility: hidden; z-index: 3; }
+.reader-toolbar.is-visible { opacity: 1; pointer-events: auto; visibility: visible; }
+.reader-progress { color: #f2f2f5; flex: 1 1 180px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reader-host { background: #fff; height: 100%; overflow: hidden; width: 100%; }
+.reader-overlay-scrim { background: #0005; inset: 0; position: absolute; z-index: 3; }
+.reader-overlay { background: #202126; border: 1px solid #727681; bottom: 0; box-shadow: 4px 0 16px #0008; color: #f2f2f5; left: 0; max-width: 100%; overflow: auto; padding: 18px; position: absolute; top: 0; width: min(400px, 85vw); z-index: 4; }
+.appearance-overlay { left: auto; right: 0; }
+.appearance-controls { display: grid; gap: 10px; margin-top: 20px; }
+.appearance-controls label, .settings-section > label { display: grid; gap: 6px; }
+.appearance-controls select, .settings-section select { background: #2c2e34; border: 1px solid #777b86; border-radius: 4px; color: #f4f4f6; font: inherit; min-height: 38px; padding: 5px 8px; }
+.appearance-stepper { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.appearance-stepper > div { display: flex; gap: 6px; }
+.appearance-stepper button { min-width: 38px; }
+.settings-section { border-top: 1px solid #494b52; display: grid; gap: 12px; margin-top: 24px; max-width: 650px; padding-top: 16px; }
+.settings-section h2, .settings-section p { margin: 0; }
+.font-catalog { display: grid; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.font-catalog li { align-items: center; display: flex; gap: 12px; justify-content: space-between; }
+.model-status { color: #d8dbe1; font-size: .85rem; }
+.translation-action, .translation-bubble { position: absolute; z-index: 5; }
+.translation-action { filter: drop-shadow(0 3px 8px #0008); }
+.translation-bubble { background: #202126; border: 1px solid #8d929c; border-radius: 8px; box-shadow: 0 8px 24px #0009; color: #f5f5f7; display: grid; gap: 10px; max-height: min(240px, 45vh); max-width: min(340px, calc(100vw - 24px)); overflow: auto; padding: 12px; width: max-content; }
+.translation-bubble.is-hidden { display: none; }
+.translation-heading { color: #bfc9d9; font-size: .8rem; font-weight: 700; }
+.translation-text { overflow-wrap: anywhere; white-space: pre-wrap; }
+.translation-text.is-preview { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.translation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.translation-modal-backdrop { align-items: center; background: #0009; display: flex; inset: 0; justify-content: center; padding: 24px; position: absolute; z-index: 6; }
+.translation-expanded { background: #202126; border: 1px solid #8d929c; border-radius: 10px; box-shadow: 0 12px 32px #000b; color: #f5f5f7; display: grid; gap: 14px; max-height: min(80vh, 800px); max-width: 720px; overflow: auto; padding: 24px; width: 100%; }
+.translation-expanded h2 { font-size: 1.1rem; margin: 0; }
+.translation-full-text { overflow-wrap: anywhere; white-space: pre-wrap; }
+.toc-list { list-style: none; margin: 10px 0; padding-left: 18px; }
+.toc-list button { background: none; border: 0; color: #d6d8df; cursor: pointer; padding: 6px; text-align: left; }
+.toc-list button:hover, .toc-list button:focus-visible { text-decoration: underline; }
+.toc-list .toc-active { color: #8bd0ff; font-weight: 700; }
+.reader-status { clip: rect(0, 0, 0, 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+.reader-error { background: #202126; bottom: 10px; color: #fff; left: 10px; position: absolute; z-index: 5; }
+.reader-error:empty { display: none; }
+@media (max-width: 640px) { .reader-toolbar { align-items: stretch; flex-direction: column; } .reader-progress { flex-basis: auto; } .reader-overlay { width: min(400px, 95vw); } }
+@media (prefers-reduced-motion: no-preference) { .reader-toolbar { transition: opacity 120ms ease, visibility 120ms ease; } }
+@media (forced-colors: active) { .reader-toolbar, .reader-overlay { border: 1px solid CanvasText; } .reader-toolbar-trigger:focus-visible { outline: 3px solid Highlight; } }

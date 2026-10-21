@@ -1,0 +1,15 @@
+:root { color-scheme: dark; font-family: "Segoe UI", sans-serif; background: #141414; color: #eee; }
+* { box-sizing: border-box; }
+body { margin: 0; display: grid; grid-template-rows: auto auto 1fr auto; height: 100vh; overflow: hidden; }
+header, .appearance, footer { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #202020; border-bottom: 1px solid #444; }
+header { flex-wrap: wrap; }
+button, select, input { font: inherit; }
+button, select { color: #eee; background: #333; border: 1px solid #666; border-radius: 4px; padding: 5px 9px; }
+button:hover { background: #444; }
+.appearance label { display: flex; align-items: center; gap: 5px; }
+#status { margin-left: auto; color: #9bd; }
+#viewer { min-height: 0; background: #f7f4ed; color: #222; overflow: hidden; }
+#translate { position: fixed; z-index: 50; background: #1264a3; border-color: #70b7ee; box-shadow: 0 4px 14px #0008; }
+footer { border-top: 1px solid #444; border-bottom: 0; font-size: 12px; justify-content: space-between; }
+footer span { max-width: 33%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+

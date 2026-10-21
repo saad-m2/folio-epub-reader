@@ -1,0 +1,3 @@
+[submodule "spikes/renderer-foliate/vendor/foliate-js"]
+	path = spikes/renderer-foliate/vendor/foliate-js
+	url = https://github.com/johnfactotum/foliate-js.git

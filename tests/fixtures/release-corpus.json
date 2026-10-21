@@ -1,0 +1,88 @@
+{
+  "fixtures": [
+    {
+      "name": "deep-marker.epub",
+      "expected": "supported",
+      "stress": false,
+      "sizeBytes": 91739,
+      "sha256": "48d480b1bfb123de05cc9ff016dfd8007568de16d21d922f215e400e7a284170"
+    },
+    {
+      "name": "interaction-smoke.epub",
+      "expected": "supported",
+      "stress": false,
+      "sizeBytes": 2253,
+      "sha256": "9563a62245d55ad0c551325430a92f77b5a4402870c729ea03d0186b37acc1f5"
+    },
+    {
+      "name": "epub3-nested-nav.epub",
+      "expected": "supported",
+      "stress": false,
+      "sizeBytes": 2089,
+      "sha256": "8e627a9adf8811551035d790f664732d84497bd5a1c083fc82ded25f52c8b762"
+    },
+    {
+      "name": "fixed-layout.epub",
+      "expected": "UNSUPPORTED_EPUB",
+      "stress": false,
+      "sizeBytes": 2116,
+      "sha256": "8b4c0ffc47e7c5fdc45ee7d1f7d962407e74e061f6769f8e118eb48db01afbb7"
+    },
+    {
+      "name": "scripted.epub",
+      "expected": "UNSUPPORTED_EPUB",
+      "stress": false,
+      "sizeBytes": 2102,
+      "sha256": "e83374835782ef47c4f6d1c1a01c99b75be5044b4ae7475e2b85c2e3c7a914d4"
+    },
+    {
+      "name": "media-overlay.epub",
+      "expected": "UNSUPPORTED_EPUB",
+      "stress": false,
+      "sizeBytes": 2105,
+      "sha256": "df5ba6b303ff7141fffff3a7653118fade5259176dcb49eb7f1d9b39ac11dfd8"
+    },
+    {
+      "name": "malformed-package.epub",
+      "expected": "INVALID_EPUB",
+      "stress": false,
+      "sizeBytes": 1746,
+      "sha256": "36d7d6490e5d9b2f7889b80ddb5d2177d9763e4bb0a8a8c7428e401a86404df1"
+    },
+    {
+      "name": "drm.epub",
+      "expected": "UNSUPPORTED_EPUB",
+      "stress": false,
+      "sizeBytes": 2228,
+      "sha256": "b40ab2c94839d64f22ffb6de86b45dd9f6115c617e54cd0c260e9391463d5182"
+    },
+    {
+      "name": "missing-navigation.epub",
+      "expected": "supported",
+      "stress": false,
+      "sizeBytes": 1807,
+      "sha256": "3b7655d2fd33baefdc56abccd6d06bf6a21e4651270fd599257b3bc24ae83a2a"
+    },
+    {
+      "name": "stress.epub",
+      "expected": "supported",
+      "stress": true,
+      "sizeBytes": 17259,
+      "sha256": "31bc340a32cb98a1ed06857afbec73469773ccdd65f8d9fe90d67e96038e12c8"
+    },
+    {
+      "name": "offline-german.epub",
+      "expected": "supported",
+      "stress": false,
+      "sizeBytes": 2082,
+      "sha256": "7e1e537c68cfd48617be4e8885feabd70c40609145b62d69a0bf298477ced308"
+    },
+    {
+      "name": "malformed-zip.epub",
+      "expected": "INVALID_EPUB",
+      "stress": false,
+      "sizeBytes": 17,
+      "sha256": "6b73de250c0513b43e61962e67def702c95e0d337fcdef59d3e6c2c672e3ea2b"
+    }
+  ]
+}

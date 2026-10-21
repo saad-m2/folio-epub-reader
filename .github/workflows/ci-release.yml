@@ -1,0 +1,266 @@
+name: CI & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "12.5.1"
+
+jobs:
+  lint-and-test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm check
+
+      - name: Run tests
+        run: pnpm test
+
+  build-windows:
+    name: Build Windows x64
+    needs: lint-and-test
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    outputs:
+      installer_sha256: ${{ steps.installer.outputs.INSTALLER_SHA256 }}
+      installer_size_mb: ${{ steps.installer.outputs.INSTALLER_SIZE_MB }}
+      verification_passed: ${{ steps.verify.outputs.VERIFICATION_PASSED }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate SBOM
+        run: pnpm run sbom
+
+      - name: Check licenses
+        run: pnpm license-check
+
+      - name: Verify dependencies (pre-build)
+        run: pnpm verify-deps
+
+      - name: Build and package
+        run: pnpm package:release
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Verify installer artifact
+        id: installer
+        run: |
+          $installer = "out/make/squirrel.windows/x64/WindowsEpubReaderSetup.exe"
+          if (Test-Path $installer) {
+            $hash = Get-FileHash -Algorithm SHA256 $installer | Select-Object -ExpandProperty Hash
+            $size = (Get-Item $installer).Length
+            $sizeMB = [math]::Round($size / 1MB, 2)
+            Write-Host "Installer found: $installer"
+            Write-Host "SHA256: $hash"
+            Write-Host "Size: $sizeMB MB"
+            echo "INSTALLER_SHA256=$hash" >> $env:GITHUB_OUTPUT
+            echo "INSTALLER_SIZE_MB=$sizeMB" >> $env:GITHUB_OUTPUT
+          } else {
+            Write-Error "Installer not found at $installer"
+            exit 1
+          }
+
+      - name: Verify dependencies (post-build)
+        id: verify
+        run: |
+          node scripts/verify-dependencies.cjs --installer
+          echo "VERIFICATION_PASSED=true" >> $env:GITHUB_OUTPUT
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WindowsEpubReaderSetup-x64
+          path: out/make/squirrel.windows/x64/WindowsEpubReaderSetup.exe
+          retention-days: 30
+
+      - name: Upload packaged runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packaged-runtime
+          path: release-artifacts/packaged-runtime.json
+          retention-days: 90
+
+      - name: Upload qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualification-evidence
+          path: |
+            release-artifacts/packaged-dependencies.json
+            release-artifacts/dependency-verification.json
+            release-artifacts/license-report.json
+            release-artifacts/sbom.cdx.json
+            release-artifacts/sbom-summary.json
+            release-artifacts/font-inventory.json
+          retention-days: 90
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: release-artifacts/sbom.cdx.json
+          retention-days: 90
+
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: release-artifacts/license-report.json
+          retention-days: 90
+
+      - name: Upload dependency verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-verification
+          path: release-artifacts/dependency-verification.json
+          retention-days: 90
+
+      - name: Upload SBOM summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-summary
+          path: release-artifacts/sbom-summary.json
+          retention-days: 90
+
+      - name: Upload font inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: font-inventory
+          path: release-artifacts/font-inventory.json
+          retention-days: 90
+
+  release:
+    name: Create Release
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/v') && needs.build-windows.outputs.verification_passed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download installer
+        uses: actions/download-artifact@v4
+        with:
+          name: WindowsEpubReaderSetup-x64
+          path: release/
+
+      - name: Download SBOM
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: release/
+
+      - name: Download license report
+        uses: actions/download-artifact@v4
+        with:
+          name: license-report
+          path: release/
+
+      - name: Download dependency verification
+        uses: actions/download-artifact@v4
+        with:
+          name: dependency-verification
+          path: release/
+
+      - name: Download SBOM summary
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-summary
+          path: release/
+
+      - name: Download font inventory
+        uses: actions/download-artifact@v4
+        with:
+          name: font-inventory
+          path: release/
+
+      - name: Verify installer hash matches build
+        run: |
+          cd release
+          sha256=$(sha256sum WindowsEpubReaderSetup.exe | cut -d' ' -f1 | tr '[:lower:]' '[:upper:]')
+          expected="${{ needs.build-windows.outputs.installer_sha256 }}"
+          if [ "$sha256" != "$expected" ]; then
+            echo "HASH MISMATCH: expected $expected, got $sha256"
+            exit 1
+          fi
+          echo "Installer hash verified: $sha256"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Windows EPUB Reader ${{ github.ref_name }}
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release/WindowsEpubReaderSetup.exe
+            release/sbom.cdx.json
+            release/license-report.json
+            release/dependency-verification.json
+            release/sbom-summary.json
+            release/font-inventory.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post release notes with hashes
+        run: |
+          echo "## Release Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Artifact | SHA256 | Size (MB) |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|-----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| WindowsEpubReaderSetup.exe | ${{ needs.build-windows.outputs.installer_sha256 }} | ${{ needs.build-windows.outputs.installer_size_mb }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Supply Chain Evidence" >> $GITHUB_STEP_SUMMARY
+          echo "- CycloneDX SBOM: \`sbom.cdx.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- SBOM Summary (production): \`sbom-summary.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Font Inventory: \`font-inventory.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- License Report: \`license-report.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency Verification: \`dependency-verification.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** Installer is intentionally unsigned (no paid signing requirement). Verify SHA256 before installation." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Release is a draft** - manual review required before publishing." >> $GITHUB_STEP_SUMMARY

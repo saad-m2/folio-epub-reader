@@ -1,0 +1,16 @@
+{
+  "name": "epub-reader-foliate-candidate-spike",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.5.1",
+  "type": "module",
+  "description": "Disposable Foliate-js deep-marker appearance probe",
+  "main": "src/main.cjs",
+  "scripts": {
+    "test": "node --test test/*.test.cjs",
+    "test:appearance": "set SPIKE_FOLIATE_APPEARANCE=1&& electron ."
+  },
+  "devDependencies": {
+    "electron": "38.7.2"
+  }
+}

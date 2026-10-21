@@ -1,0 +1,56 @@
+{
+  "name": "windows-epub-reader",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.5.1",
+  "description": "A hardened local EPUB reader",
+  "author": "Windows EPUB Reader contributors",
+  "main": "dist/main/main/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.main.json && vite build",
+    "check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.main.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "generate:proof-fixture": "node scripts/generate-proof-fixture.cjs",
+    "start": "pnpm generate:proof-fixture && pnpm build && electron .",
+    "make": "pnpm generate:proof-fixture && pnpm build && electron-forge make",
+    "proof": "pnpm generate:proof-fixture && pnpm build && node scripts/run-proof.cjs",
+    "proof:runtime": "pnpm generate:proof-fixture && pnpm build && electron .",
+    "generate:release-corpus": "pnpm generate:proof-fixture && node scripts/generate-release-corpus.cjs",
+    "test:packaged": "pnpm generate:release-corpus && node scripts/run-release-tests.cjs",
+    "package:candidate": "pnpm generate:release-corpus && pnpm build && electron-forge make",
+    "sbom": "node scripts/generate-sbom.cjs",
+    "license-check": "node scripts/check-licenses.cjs",
+    "verify-deps": "node scripts/verify-dependencies.cjs",
+    "verify-package": "node scripts/verify-packaged-dependencies.cjs",
+    "package:release": "pnpm generate:release-corpus && pnpm build && pnpm run sbom && pnpm license-check && pnpm verify-deps && electron-forge make && pnpm verify-package && pnpm test:packaged && node scripts/verify-dependencies.cjs --installer",
+    "ci:build": "pnpm check && pnpm test && pnpm package:release"
+  },
+  "dependencies": {
+    "@fluentui/react-components": "9.72.5",
+    "epubjs": "0.3.93",
+    "jszip": "3.10.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "3.24.4"
+  },
+  "devDependencies": {
+    "@cyclonedx/cyclonedx-npm": "6.0.1",
+    "@electron-forge/cli": "8.0.1",
+    "@electron-forge/maker-squirrel": "8.0.1",
+    "@types/node": "22.15.29",
+    "@types/react": "18.3.20",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "@xmldom/xmldom": "0.9.12",
+    "electron": "42.11.6",
+    "jsdom": "30.1.1",
+    "license-checker": "25.0.1",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vitest": "4.1.11"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}
