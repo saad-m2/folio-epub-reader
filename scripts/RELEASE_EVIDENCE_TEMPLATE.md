@@ -59,7 +59,7 @@ The packaged test command fails when a measured gate fails. A successful candida
 ## Known Residual Risks
 
 1. **Unsigned installer** — No paid code signing certificate; users must verify SHA256
-2. **No auto-update** — Manual reinstall required for updates (by design)
+2. **Update feed qualification** — Record the configured GitHub repository and installed two-version download/restart result. Without a configured feed, use a newer installer for manual upgrades. See `docs/UPDATES.md`.
 3. **Windows 11 x64 only** — No ARM64, 32-bit, or macOS/Linux builds
 4. **Qualification scope** — Record memory/performance, real Ollama/GPU, offline UI and accessibility results for this exact candidate. The owner waived clean-machine/VM installer tests for personal use on 2026-10-02; label that matrix as waived rather than passed. Other missing required evidence blocks acceptance.
 

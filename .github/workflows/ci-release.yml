@@ -109,11 +109,14 @@ jobs:
           node scripts/verify-dependencies.cjs --installer
           echo "VERIFICATION_PASSED=true" >> $env:GITHUB_OUTPUT
 
-      - name: Upload installer artifact
+      - name: Upload installer and Squirrel update artifacts
         uses: actions/upload-artifact@v4
         with:
           name: WindowsEpubReaderSetup-x64
-          path: out/make/squirrel.windows/x64/WindowsEpubReaderSetup.exe
+          path: |
+            out/make/squirrel.windows/x64/WindowsEpubReaderSetup.exe
+            out/make/squirrel.windows/x64/RELEASES
+            out/make/squirrel.windows/x64/*-full.nupkg
           retention-days: 30
 
       - name: Upload packaged runtime evidence
@@ -238,6 +241,8 @@ jobs:
           generate_release_notes: true
           files: |
             release/WindowsEpubReaderSetup.exe
+            release/RELEASES
+            release/*-full.nupkg
             release/sbom.cdx.json
             release/license-report.json
             release/dependency-verification.json

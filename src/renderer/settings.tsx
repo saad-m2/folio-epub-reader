@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { Appearance, ReaderMode } from "../shared/contracts";
 import { AppearanceControls, Icon, ModeSwitch } from "./ui";
+import { SettingsUpdates } from "./settings-updates";
 
 export type FontEntry = {
   id: string;
@@ -638,6 +639,7 @@ export function SettingsView({
               temporary and are not saved to your book.
             </p>
           </div>
+          {tab === "about" && <SettingsUpdates />}
         </section>
       </div>
     </main>

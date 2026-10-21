@@ -8,6 +8,9 @@ function invoke(name: string, payload: unknown): Promise<unknown> {
 }
 
 contextBridge.exposeInMainWorld("readerApi", Object.freeze({
+  getAppUpdateStatus: () => invoke("getAppUpdateStatus", {}),
+  checkAppUpdates: () => invoke("checkAppUpdates", {}),
+  installAppUpdate: () => invoke("installAppUpdate", {}),
   chooseBooks: () => invoke("chooseBooks", {}),
   listLibrary: () => invoke("listLibrary", {}),
   openSession: (bookId: string) => invoke("openSession", { bookId }).then((result: unknown) => {

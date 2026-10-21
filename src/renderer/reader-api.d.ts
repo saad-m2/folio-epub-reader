@@ -1,5 +1,8 @@
 interface Window {
   readerApi: Readonly<{
+    getAppUpdateStatus(): Promise<unknown>;
+    checkAppUpdates(): Promise<unknown>;
+    installAppUpdate(): Promise<unknown>;
     chooseBooks(): Promise<unknown>;
     listLibrary(): Promise<unknown>;
     openSession(bookId: string): Promise<unknown>;

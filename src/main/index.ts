@@ -1,4 +1,4 @@
-import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, protocol, session, shell, type IpcMainInvokeEvent, type Session } from "electron";
+import { app, autoUpdater, BrowserWindow, clipboard, dialog, ipcMain, Menu, protocol, session, shell, type IpcMainInvokeEvent, type Session } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -12,6 +12,7 @@ import { CloseSessionSchema, OpenSessionSchema, RemoveBookSchema, RendererIntent
 import { handleSquirrelEvent } from "./squirrel";
 import { runReleaseTests } from "./release-tests";
 import { configureOfflineQualification } from "./offline-test";
+import { UpdateController } from "./updates";
 
 configurePaths();
 configureOfflineQualification();
@@ -21,8 +22,9 @@ const publications = new TrustedPublicationSessions();
 let window: BrowserWindow | undefined;
 let library: LibraryRepository | undefined;
 let fontManager: FontManager | undefined;
+let updates: UpdateController | undefined;
 const pendingImports = new Map<string, { sourcePath: string; owner: Session; archiveHash: string }>();
-const translation = new LocalTranslationGateway();
+let translation = new LocalTranslationGateway();
 let activeSelection: { id: string; sessionId: string; owner: Session; text: string; expiresAt: number } | undefined;
 let currentTranslation: { selectionId: string; text: string } | undefined;
 
@@ -296,6 +298,26 @@ registerIntent("listFonts", async () => {
   if (!fontManager) throw safeError("NOT_FOUND");
   return fontManager.list();
 });
+registerIntent("getAppUpdateStatus", () => {
+  if (!updates) throw safeError("NOT_FOUND");
+  return updates.getStatus();
+});
+registerIntent("checkAppUpdates", () => {
+  if (!updates) throw safeError("NOT_FOUND");
+  return updates.check();
+});
+registerIntent("installAppUpdate", async event => {
+  if (!updates) throw safeError("NOT_FOUND");
+  if (updates.getStatus().state !== "ready") return updates.getStatus();
+  const owner = BrowserWindow.fromWebContents(event.sender);
+  if (!owner) throw safeError("UNAUTHORIZED");
+  const confirmation = await dialog.showMessageBox(owner, {
+    type: "question", title: "Install app update", message: "Restart Folio and install the downloaded update?",
+    detail: "Your library, reading positions, preferences, and downloaded fonts will be kept.",
+    buttons: ["Restart and install", "Later"], defaultId: 1, cancelId: 1, noLink: true,
+  });
+  return confirmation.response === 0 ? updates.install() : updates.getStatus();
+});
 registerIntent("downloadFont", async (_event, payload) => {
   if (!fontManager) throw safeError("NOT_FOUND");
   try { return await fontManager.install(RendererIntents.downloadFont.parse(payload).fontId); }
@@ -370,6 +392,19 @@ app.whenReady().then(async () => {
   await fs.mkdir(app.getPath("userData"), { recursive: true });
   library = new LibraryRepository(path.join(app.getPath("userData"), "library.sqlite"));
   fontManager = new FontManager(path.join(app.getPath("userData"), "fonts"));
+  const manifest = JSON.parse(await fs.readFile(path.join(app.getAppPath(), "package.json"), "utf8")) as { updateRepository?: unknown };
+  const installed = app.isPackaged && await fs.access(path.resolve(path.dirname(process.execPath), "..", "Update.exe")).then(() => true, () => false);
+  updates = new UpdateController(autoUpdater, {
+    version: app.getVersion(), repository: manifest.updateRepository, packaged: app.isPackaged, installed,
+    platform: process.platform, arch: process.arch, firstRun: process.argv.includes("--squirrel-firstrun"),
+    beforeInstall: async () => {
+      await releaseActivePublicationSessions();
+      await translation.dispose();
+      // Keep the running app usable if the platform updater cannot restart it.
+      // Normal quit handling can safely dispose this fresh, unloaded gateway.
+      translation = new LocalTranslationGateway();
+    },
+  });
   const rendererRoot = path.join(app.getAppPath(), "dist", "renderer");
   const appSession = session.fromPartition("persist:app", { cache: false });
   appSession.protocol.handle("app", async request => {

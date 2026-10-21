@@ -1,5 +1,7 @@
 # H6 — Produce and verify the Windows 11 x64 installer
 
+**Owner scope addition (2026-10-21).** Version 0.2.0 adds explicit in-app update checks using GitHub Releases and Electron's Windows Squirrel updater. Online updates require a configured public repository and published release artifacts. See [the update and publishing instructions](../../../../../UPDATES.md). The original MVP exclusions below describe the earlier scope.
+
 **Owner scope revision (2026-10-02).** Clean-machine/VM installer tests are waived for this personal-use release. The clean installation/upgrade/uninstall/reinstall matrix remains optional future distribution work. Artifact verification and host installation/launch smoke evidence remain applicable.
 
 

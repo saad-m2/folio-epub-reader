@@ -8,7 +8,9 @@ allowBuilds:
 blockExoticSubdeps: false
 overrides:
   '@xmldom/xmldom': 0.9.12
-  vite: 6.4.3
+  vite: 6.4.4
+  http-cache-semantics: 4.3.0
+  source-map-js: 1.2.2
   tar: 7.5.22
 nodeLinker: hoisted
 onlyBuiltDependencies:

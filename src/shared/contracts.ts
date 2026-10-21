@@ -51,6 +51,9 @@ export const SettingsSchema = z.object({ mode: ReaderModeSchema.optional(), appe
 export const LinkSchema = z.object({ sessionId: id, url: z.string().url().max(2_048).refine(url => new URL(url).protocol === "https:") }).strict();
 
 export const RendererIntents = {
+  getAppUpdateStatus: z.object({}).strict(),
+  checkAppUpdates: z.object({}).strict(),
+  installAppUpdate: z.object({}).strict(),
   chooseBooks: z.object({}).strict(),
   listLibrary: z.object({}).strict(),
   openSession: OpenSessionSchema,
