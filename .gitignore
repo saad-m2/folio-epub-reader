@@ -1,0 +1,46 @@
+# Local environment and credentials (examples must contain placeholders only).
+.env
+.env.*
+!.env.example
+!.env.*.example
+.envrc
+.direnv/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+
+# Dependencies and build output.
+node_modules/
+.pnpm-store/
+package-lock.json
+pnpm-debug.log*
+dist/
+out/
+.epubjs-patch/
+tests/fixtures/*.epub
+
+# Generated diagnostics can contain user paths, network configuration, or book text.
+/release-artifacts/
+/spikes/renderer/evidence/
+/spikes/renderer-foliate/evidence/
+*.log
+*.pid
+*.heapsnapshot
+
+# Local runtime databases and their sidecars.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Local fixture archive; regenerate fixtures with the project scripts.
+/list.zip
