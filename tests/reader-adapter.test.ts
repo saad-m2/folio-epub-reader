@@ -265,7 +265,7 @@ describe("ReaderAdapter", () => {
     });
 
     const rendition = (adapter as any).rendition;
-    expect(renderedStyles(rendition)).toContain("background: #ffffff");
+    expect(renderedStyles(rendition)).toContain("background: #fafaf5");
   });
 
   it("registers chapter break theme for paginated mode", async () => {
@@ -283,7 +283,7 @@ describe("ReaderAdapter", () => {
     const rendition = (adapter as any).rendition;
     const css = renderedStyles(rendition);
     expect(css).toContain("page-break-before: always");
-    expect(css).toContain("background: #ffffff");
+    expect(css).toContain("background: #fafaf5");
   });
 
   it("setMode recreates rendition and restores location", async () => {
@@ -320,7 +320,7 @@ describe("ReaderAdapter", () => {
     await adapter.applyAppearance({ theme: "dark", fontSize: 18, margin: 40, lineHeight: 1.5, paragraphSpacing: 0, fontFamily: "Georgia" });
 
     const rendition = (adapter as any).rendition;
-    expect(renderedStyles(rendition)).toContain("background: #1d1d1d");
+    expect(renderedStyles(rendition)).toContain("background: #20251f");
   });
 
   it("coalesces rapid reflows and ends with the latest appearance", async () => {
@@ -335,7 +335,7 @@ describe("ReaderAdapter", () => {
       adapter.reflow({ ...base, theme: "dark" })
     ]);
     expect(mockBook.renderTo).toHaveBeenCalledTimes(1);
-    expect(renderedStyles(mockBook.renderTo())).toContain("background: #1d1d1d");
+    expect(renderedStyles(mockBook.renderTo())).toContain("background: #20251f");
   });
 
   it("delegates page movement without repeating the relocated event's DOM measurement", async () => {

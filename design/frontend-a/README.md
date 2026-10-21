@@ -2,7 +2,7 @@
 
 Open **[index.html](index.html)** directly in a desktop browser. Everything is included in the HTML; no server, installation, internet connection, or app build is needed.
 
-This is a review prototype, separate from the application. No production source files were changed. **Folio** is a proposed working name, not a naming decision.
+This file preserves the approved review prototype, separate from the live application. The approved design has now been implemented in the renderer; see [implementation and validation notes](IMPLEMENTATION.md). Folio is the interface identity from the approved design; the application package and data-directory identities are unchanged.
 
 ## Design decision
 

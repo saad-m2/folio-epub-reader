@@ -65,7 +65,10 @@ async function createWindow(): Promise<void> {
   appSession.setPermissionCheckHandler(() => false);
   appSession.on("will-download", event => event.preventDefault());
   appSession.webRequest.onBeforeRequest((details, callback) => callback({ cancel: /^(https?|file):/i.test(details.url) }));
-  window = new BrowserWindow({ width: 1200, height: 800, show: process.env.E01_AUTOMATED_PROOF !== "1", webPreferences: { preload: path.join(__dirname, "..", "preload", "index.js"), partition: "persist:app", sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, allowRunningInsecureContent: false } });
+  // Qualification waits for painted frames, including in hidden/occluded windows.
+  // Normal desktop sessions retain Chromium's default background throttling.
+  const automated = process.env.E01_AUTOMATED_PROOF === "1" || process.env.E06_RELEASE_TEST === "1" || process.env.E06_UI_TEST === "1";
+  window = new BrowserWindow({ width: 1200, height: 800, show: process.env.E01_AUTOMATED_PROOF !== "1", webPreferences: { preload: path.join(__dirname, "..", "preload", "index.js"), partition: "persist:app", backgroundThrottling: !automated, sandbox: true, contextIsolation: true, nodeIntegration: false, webSecurity: true, allowRunningInsecureContent: false } });
   window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   window.webContents.on("context-menu", (_event, params) => {
     if (!params.selectionText && !params.isEditable) return;
@@ -338,12 +341,12 @@ async function runAutomatedProof(): Promise<void> {
         for (let attempt = 0; attempt < 50 && document.querySelector('.reader-toolbar')?.textContent?.includes('Opening book'); attempt += 1) await new Promise(resolve => setTimeout(resolve, 100));
         const initialMode = document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode');
         window.dispatchEvent(new Event('reader-proof-switch'));
-        for (let attempt = 0; attempt < 30 && document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode') === initialMode; attempt += 1) {
+        for (let attempt = 0; attempt < 250 && document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode') === initialMode; attempt += 1) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         const switchedMode = document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode');
         window.dispatchEvent(new Event('reader-proof-switch'));
-        for (let attempt = 0; attempt < 30 && document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode') !== initialMode; attempt += 1) {
+        for (let attempt = 0; attempt < 250 && document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode') !== initialMode; attempt += 1) {
           await new Promise(resolve => setTimeout(resolve, 100));
         }
         const bothFlows = Boolean(initialMode && switchedMode && switchedMode !== initialMode && document.querySelector('[data-reader-mode]')?.getAttribute('data-reader-mode') === initialMode);

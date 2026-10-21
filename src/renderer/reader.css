@@ -1,0 +1,440 @@
+/* Live EPUB layout: retain a stable host origin for selection coordinates. */
+.app-reading {
+  height: 100vh;
+  overflow: hidden;
+}
+.reader {
+  --paper: #fafaf5;
+  --reading-ink: #30372e;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 320px;
+  overflow: hidden;
+  position: relative;
+  background: var(--paper);
+  color: var(--reading-ink);
+}
+.reader.theme-sepia {
+  --paper: #eee7d8;
+  --reading-ink: #3b4035;
+}
+.reader.theme-dark {
+  --paper: #20251f;
+  --reading-ink: #d4d9cb;
+}
+.reader-toolbar-trigger {
+  background: transparent;
+  border: 0;
+  height: 18px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: 2;
+}
+.reader-toolbar-trigger:focus-visible {
+  background: var(--paper);
+  height: 28px;
+}
+.reader-toolbar {
+  align-items: center;
+  background: var(--paper);
+  color: var(--reading-ink);
+  border-bottom: 1px solid #76816c40;
+  display: flex;
+  gap: 12px;
+  left: 0;
+  max-height: 50vh;
+  height: auto;
+  opacity: 0;
+  overflow: auto;
+  padding: 14px 25px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  visibility: hidden;
+  z-index: 3;
+}
+.reader-toolbar.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+.reader-toolbar .icon-btn,
+.reader-toolbar .ghost {
+  color: inherit;
+}
+.reader-toolbar .btn:hover,
+.reader-footer .btn:hover {
+  background: #88957520;
+}
+.divider {
+  width: 1px;
+  height: 22px;
+  background: #7d846f40;
+  flex-shrink: 0;
+}
+.reader-book-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+}
+.reader-book-label > span:not(.sr-only) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reader-book-label small {
+  opacity: 0.65;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.reader-tools {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  margin: 0;
+}
+.reader .segmented {
+  border-color: #9b9d8c60;
+}
+.reader .segmented button {
+  color: inherit;
+}
+.reader .segmented button[aria-pressed="true"] {
+  background: #88957530;
+  color: inherit;
+}
+.reader-host {
+  background: var(--paper);
+  height: calc(100% - 46px);
+  overflow: hidden;
+  width: 100%;
+}
+.reader-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 46px;
+  border-top: 1px solid #76816c30;
+  padding: 0 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  color: var(--reading-ink);
+  background: var(--paper);
+  gap: 25px;
+  opacity: 1;
+}
+.reader-footer > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.reader-footer > .track {
+  max-width: 350px;
+  background: #77826c30;
+}
+.reader-footer .track i {
+  background: #788867;
+}
+.reader-footer .icon-btn {
+  color: inherit;
+  width: 27px;
+  height: 27px;
+  min-height: 27px;
+}
+.reader-footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+.reader-loading {
+  position: absolute;
+  inset: 0 0 46px;
+  background: var(--paper);
+  color: var(--reading-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.reader-overlay-scrim {
+  background: #0005;
+  inset: 0;
+  position: absolute;
+  z-index: 3;
+}
+.reader-overlay {
+  background: var(--bg);
+  border-right: 1px solid var(--line);
+  bottom: 0;
+  box-shadow: 4px 0 16px #0003;
+  color: var(--text);
+  left: 0;
+  max-width: 100%;
+  overflow: auto;
+  padding: 25px;
+  position: absolute;
+  top: 0;
+  width: min(330px, 90vw);
+  z-index: 4;
+}
+.appearance-overlay {
+  left: auto;
+  right: 0;
+  border-right: 0;
+  border-left: 1px solid var(--line);
+  width: min(360px, 95vw);
+}
+.drawer-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  gap: 12px;
+}
+.drawer-title h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.appearance-overlay .form-row {
+  padding: 16px 0;
+}
+.toc-list {
+  list-style: none;
+  margin: 20px 0;
+  padding: 0;
+}
+.toc-list .toc-list {
+  padding-left: 14px;
+  margin: 5px 0;
+}
+.toc-list button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 12px 10px;
+  text-align: left;
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.toc-list button:hover {
+  background: var(--hover);
+}
+.toc-list .toc-active {
+  background: #303a2b;
+  color: var(--sage);
+  border-left: 2px solid var(--sage);
+}
+.translation-action,
+.translation-bubble {
+  position: absolute;
+  z-index: 5;
+}
+.translation-action {
+  filter: drop-shadow(0 3px 8px #0004);
+}
+.translation-bubble {
+  background: #20261f;
+  border: 1px solid #55644b;
+  border-radius: 10px;
+  box-shadow: 0 15px 45px #0003;
+  color: var(--text);
+  display: grid;
+  gap: 12px;
+  max-height: min(290px, 50vh);
+  max-width: min(340px, calc(100vw - 24px));
+  overflow: auto;
+  padding: 20px;
+  width: 330px;
+  top: auto;
+  right: auto;
+}
+.translation-bubble:before {
+  display: none;
+}
+.translation-bubble.is-hidden {
+  display: none;
+}
+.translation-heading {
+  color: var(--sage);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.translation-heading span {
+  padding: 0 6px;
+}
+.translation-text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.translation-text.is-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+.translation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.translation-actions .btn {
+  font-size: 11px;
+}
+.bubble-status {
+  font-size: 10px;
+  color: var(--muted);
+}
+.translation-modal-backdrop {
+  align-items: center;
+  background: #090e0bbd;
+  backdrop-filter: blur(4px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 24px;
+  position: absolute;
+  z-index: 6;
+}
+.translation-expanded {
+  background: #222720;
+  border: 1px solid #414b3d;
+  border-radius: 13px;
+  box-shadow: 0 25px 90px #0007;
+  color: var(--text);
+  display: grid;
+  gap: 20px;
+  max-height: min(80vh, 800px);
+  max-width: 720px;
+  overflow: auto;
+  padding: 30px;
+  width: 100%;
+}
+.translation-expanded h2 {
+  font-size: 24px;
+  font-weight: 400;
+  margin: 0;
+}
+.translation-full-text {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: 17px;
+  line-height: 1.8;
+}
+.reader-error {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  right: 20px;
+  width: fit-content;
+  max-width: calc(100% - 40px);
+  margin: auto;
+  padding: 15px;
+  border: 1px solid #765b42;
+  border-radius: 8px;
+  color: var(--text);
+  background: #302b23;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 7;
+  font-size: 12px;
+  box-shadow: 0 8px 30px #0004;
+}
+@media (prefers-color-scheme: dark) {
+  .reader.theme-system {
+    --paper: #20251f;
+    --reading-ink: #d4d9cb;
+  }
+}
+@media (max-width: 1200px) {
+  .reader-book-label small {
+    display: none;
+  }
+}
+@media (max-width: 1000px) {
+  .reader-toolbar {
+    flex-wrap: wrap;
+  }
+  .reader-book-label {
+    min-width: 120px;
+  }
+  .reader-mode-switch,
+  .reader-tools {
+    margin-left: auto;
+  }
+}
+@media (max-width: 700px) {
+  .reader-toolbar {
+    padding: 10px;
+    gap: 5px;
+  }
+  .reader-book-label {
+    font-size: 11px;
+  }
+  .reader-mode-switch {
+    order: 4;
+    width: 100%;
+  }
+  .reader-tools {
+    gap: 1px;
+  }
+  .reader-tools > .divider {
+    display: none;
+  }
+  .reader-tools .btn:not(.icon-btn) {
+    padding: 6px;
+    font-size: 10px;
+  }
+  .reader-footer {
+    padding: 0 15px;
+    gap: 8px;
+    font-size: 10px;
+  }
+  .reader-footer > .track,
+  .reader-footer .scroll-hint {
+    display: none;
+  }
+  .reader-footer-nav {
+    gap: 3px;
+  }
+  .reader-error {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .reader-toolbar {
+    transition:
+      opacity 120ms ease,
+      visibility 120ms ease;
+  }
+}
+@media (forced-colors: active) {
+  .reader-toolbar,
+  .reader-overlay {
+    border: 1px solid CanvasText;
+  }
+}

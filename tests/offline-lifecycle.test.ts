@@ -277,7 +277,7 @@ describe("H4: reader lifecycle and performance regression", () => {
     expect(mockBook.renderTo).toHaveBeenCalledTimes(1);
     const doc = document.implementation.createHTMLDocument("Reader frame");
     mockBook.renderTo().hooks.content.register.mock.calls.at(-1)[0]({ document: doc });
-    expect(doc.getElementById("reader-user-v1")?.textContent).toContain("background: #1d1d1d");
+    expect(doc.getElementById("reader-user-v1")?.textContent).toContain("background: #20251f");
   });
 
   it("navigation (next/previous/goTo) updates snapshot without leaks", async () => {

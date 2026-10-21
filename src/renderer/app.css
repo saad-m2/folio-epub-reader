@@ -1,0 +1,434 @@
+/* Production bindings and adaptive layouts for the approved design. */
+.app-shell {
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.shell {
+  min-height: 100vh;
+}
+.sidebar {
+  height: 100vh;
+}
+.main-layout {
+  min-height: calc(100vh - 64px);
+}
+.details {
+  height: calc(100vh - 64px);
+  min-height: 0;
+  overflow: hidden;
+}
+.details-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  padding-right: 3px;
+}
+.details-body > .cover {
+  width: 126px;
+  flex-shrink: 0;
+  align-self: center;
+  margin: 5px 0 22px;
+}
+.details-body .detail-head,
+.details-body .metadata {
+  flex-shrink: 0;
+}
+.detail-actions {
+  flex-shrink: 0;
+}
+[hidden] {
+  display: none !important;
+}
+h1:focus {
+  outline: none;
+}
+.sr-only,
+.reader-status {
+  clip-path: inset(50%);
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+}
+.ico {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.brand .ico {
+  color: var(--sage);
+}
+.dot.inactive {
+  background: #9d9b87;
+}
+.btn {
+  line-height: 1.3;
+  text-decoration: none;
+}
+.icon-btn {
+  min-height: 34px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.breadcrumb strong {
+  white-space: nowrap;
+}
+.breadcrumb > span {
+  opacity: 0.4;
+}
+.heading-count {
+  color: #84987a;
+  font-size: 20px;
+  margin-left: 8px;
+}
+.resume-copy h2 {
+  overflow-wrap: anywhere;
+}
+.resume-divider {
+  padding: 0 8px;
+  opacity: 0.5;
+}
+.book-grid {
+  grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+}
+.book {
+  max-width: 240px;
+}
+.cover-wrap {
+  position: relative;
+}
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cover-fallback {
+  padding: 7%;
+  height: 100%;
+  text-align: center;
+}
+.cover-border {
+  border: 1px solid currentColor;
+  height: 100%;
+  padding: 10% 6% 7%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+.fallback-title {
+  font-family: Georgia, serif;
+  font-size: clamp(11px, 1.2vw, 18px);
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+}
+.cover-fallback svg {
+  width: 90%;
+  min-height: 0;
+  flex: 1;
+}
+.fallback-author {
+  font-size: 8px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  max-height: 3em;
+  overflow: hidden;
+}
+.book-author {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.progress-row {
+  font-size: 10px;
+}
+.library-footer {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.details > .cover {
+  flex-shrink: 0;
+}
+.details h2 {
+  overflow-wrap: anywhere;
+}
+.file-note {
+  font-size: 11px;
+}
+.file-note p {
+  margin: 7px 0 0;
+}
+.is-warning {
+  color: #e7b293;
+}
+.settings-main {
+  width: 100%;
+  max-width: 1100px;
+}
+.settings-grid {
+  align-items: start;
+}
+.settings-grid > * {
+  min-width: 0;
+}
+.appearance-controls {
+  min-width: 0;
+}
+.form-row {
+  font-size: 12px;
+}
+select {
+  background: #181d19;
+  color: var(--text);
+  border: 1px solid #424a40;
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 11px;
+  max-width: 210px;
+}
+.segmented button {
+  white-space: nowrap;
+}
+.segmented button[aria-pressed="true"] {
+  background: #394633;
+  color: #d0e1bf;
+}
+.theme-field,
+.appearance-fields,
+.reader-mode-switch {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.theme-field legend {
+  font-size: 12px;
+  padding: 0;
+}
+.theme-field {
+  margin-top: 20px;
+}
+.theme.theme-light {
+  background: #fafaf5;
+  color: #30372e;
+}
+.theme.theme-sepia {
+  background: #eee7d8;
+  color: #3b4035;
+}
+.theme.theme-dark {
+  background: #20251f;
+  color: #d4d9cb;
+}
+.theme.theme-system {
+  background: linear-gradient(125deg, #f1eee2 50%, #252a24 50%);
+  color: #7b896f;
+}
+.theme[aria-pressed="true"] {
+  outline: 2px solid var(--sage);
+  outline-offset: 3px;
+}
+.theme:focus-visible {
+  outline-style: dashed;
+}
+.stepper {
+  flex-shrink: 0;
+}
+.type-preview {
+  overflow-wrap: anywhere;
+}
+.type-preview .eyebrow {
+  color: inherit;
+  opacity: 0.7;
+}
+.font-card {
+  padding: 23px 0;
+}
+.font-sample {
+  flex-shrink: 0;
+}
+.font-description {
+  min-width: 0;
+}
+.badge {
+  font-weight: 400;
+}
+.status-box p {
+  color: var(--muted);
+}
+.setup-step > div {
+  min-width: 0;
+}
+.app-notice {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(680px, calc(100vw - 35px));
+  padding: 12px 15px 12px 20px;
+  background: #2b3527;
+  color: var(--text);
+  border: 1px solid #55664a;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+  box-shadow: 0 8px 25px #0005;
+}
+.reader-notice {
+  bottom: 60px;
+}
+.spinner {
+  flex-shrink: 0;
+}
+.app-dialog,
+.book-detail-dialog {
+  background: #222720;
+  color: var(--text);
+  border: 1px solid #414b3d;
+  border-radius: 13px;
+  box-shadow: 0 25px 90px #0007;
+  padding: 30px;
+  width: min(460px, calc(100vw - 40px));
+}
+.app-dialog p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 12px 0 18px;
+}
+.app-dialog .fui-DialogBody,
+.book-detail-dialog .fui-DialogBody {
+  display: block;
+}
+.app-dialog .fui-DialogTitle {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.6px;
+}
+.modal-book > .cover {
+  flex-shrink: 0;
+}
+.modal-book .fallback-title {
+  font-size: 5px;
+}
+.modal-book .fallback-author {
+  font-size: 3px;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+.book-detail-dialog {
+  padding: 0;
+}
+.compact-details {
+  display: flex;
+  position: static;
+  height: auto;
+  min-height: 0;
+  width: 100%;
+  max-height: calc(100vh - 70px);
+  border: 0;
+  background: transparent;
+  height: min(750px, calc(100vh - 70px));
+}
+@media (min-width: 1600px) {
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  }
+}
+@media (max-width: 1200px) {
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+@media (max-width: 1000px) {
+  .compact-details {
+    display: flex;
+    width: 100%;
+  }
+}
+@media (max-width: 700px) {
+  .sidebar {
+    height: 100vh;
+  }
+  .brand .ico {
+    width: 26px;
+  }
+  .side-nav .nav-name {
+    display: none;
+  }
+  .page-heading .btn {
+    font-size: 11px;
+  }
+  .book-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .font-card {
+    flex-wrap: wrap;
+  }
+  .font-card .btn {
+    margin-left: auto;
+  }
+  .status-box {
+    flex-wrap: wrap;
+  }
+  .settings-main .brand {
+    font-size: 29px;
+  }
+  .fallback-title {
+    font-size: 12px;
+  }
+  .app-notice {
+    width: calc(100vw - 35px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+    border-style: dotted;
+  }
+}
+@media (forced-colors: active) {
+  .theme,
+  .book.selected .cover-wrap,
+  .btn {
+    border: 1px solid CanvasText;
+  }
+  :is(button, a, input, select, [tabindex]):focus-visible {
+    outline: 2px solid Highlight;
+  }
+  .segmented button[aria-pressed="true"],
+  .theme[aria-pressed="true"] {
+    outline: 2px solid Highlight;
+  }
+  .track i,
+  .dot {
+    background: Highlight;
+  }
+}

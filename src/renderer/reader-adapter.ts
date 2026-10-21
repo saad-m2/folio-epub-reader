@@ -476,7 +476,7 @@ export class ReaderAdapter {
 
   private async style(appearance: Appearance): Promise<string> {
     const resolved = resolveTheme(appearance.theme);
-    const colors = resolved === "dark" ? ["#e7e2d8", "#1d1d1d"] : resolved === "sepia" ? ["#3d2d1f", "#f5ecd7"] : ["#202124", "#ffffff"];
+    const colors = resolved === "dark" ? ["#d4d9cb", "#20251f"] : resolved === "sepia" ? ["#3b4035", "#eee7d8"] : ["#30372e", "#fafaf5"];
     this.host.style.backgroundColor = colors[1]!;
     const linkColors = resolved === "dark" ? ["#9ccbff", "#cab2ff"] : resolved === "sepia" ? ["#254f82", "#684281"] : ["#0645ad", "#663399"];
     const family = /^[A-Za-z0-9 ]+$/.test(appearance.fontFamily) ? appearance.fontFamily : "Liberation Sans Reader";
