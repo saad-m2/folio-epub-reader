@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text } from "@fluentui/react-components";
 import { Button, Icon, ModeSwitch, AppearanceControls } from "./ui";
+import { appearanceColors } from "./appearance";
 import type { FontEntry } from "./settings";
 import type {
   Appearance,
@@ -741,6 +742,10 @@ export function Reader({
   return (
     <section
       className={`reader theme-${settings.appearance.theme}`}
+      style={settings.appearance.theme === "custom" ? {
+        "--paper": appearanceColors(settings.appearance).background,
+        "--reading-ink": appearanceColors(settings.appearance).color,
+      } as React.CSSProperties : undefined}
       data-reader-mode={appliedMode}
       {...(proof ? { "data-proof-session": session.sessionId } : {})}
     >

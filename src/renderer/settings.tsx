@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { Appearance, ReaderMode } from "../shared/contracts";
 import { AppearanceControls, Icon, ModeSwitch } from "./ui";
 import { SettingsUpdates } from "./settings-updates";
+import { appearanceColors } from "./appearance";
 
 export type FontEntry = {
   id: string;
@@ -195,18 +196,8 @@ export function SettingsView({
       ?.querySelectorAll<HTMLButtonElement>("[role=tab]")
       [index]?.focus();
   }
-  const previewTheme =
-    settings.appearance.theme === "system"
-      ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-      : settings.appearance.theme;
-  const previewColors =
-    previewTheme === "dark"
-      ? { background: "#232721", color: "#d4d7cc" }
-      : previewTheme === "light"
-        ? { background: "#f7f7f2", color: "#32382f" }
-        : { background: "#eee5d2", color: "#4b4336" };
+  const palette = appearanceColors(settings.appearance, window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const previewColors = { background: palette.background, color: palette.color };
   return (
     <main className="settings-main">
       <div className="eyebrow">Make yourself comfortable</div>

@@ -254,7 +254,11 @@ Reading appearance preferences are global. A change made in one book applies to 
 
 - The library, Settings, and other application surfaces outside the book reader use a fixed dark appearance.
 - Reading pages have their own global theme setting.
-- Reader theme choices include System, Light, Dark, and Sepia.
+- Reader theme choices include System, Light, Dark, Sepia, and a custom background color.
+- Settings and the in-reader appearance controls offer a hue/saturation color wheel, brightness slider, exact six-digit hex input, and a preview. Users choose **Apply custom color** to save and apply their selection.
+- The wheel supports pointer dragging and keyboard input (Left/Right for hue, Up/Down for saturation, Shift for larger steps). Brightness and hex input are also keyboard accessible.
+- Applied custom colors persist on this device across restarts and apply to every book in both reading modes. Switching to a preset preserves the last custom color for reuse.
+- Custom backgrounds automatically use black or white reading text and underlined links, selecting the higher-contrast foreground for readability.
 - Changing the reader theme does not change the fixed-dark library and Settings surfaces.
 
 ### 9.3 Adjustable properties

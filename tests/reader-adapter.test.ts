@@ -49,6 +49,22 @@ describe("ReaderAdapter", () => {
     vi.clearAllMocks();
   });
 
+  it("applies custom backgrounds and readable underlined links in both reading modes", async () => {
+    const mockBook = createMockBook();
+    vi.doMock("epubjs", () => ({ default: vi.fn().mockReturnValue(mockBook) }));
+    const { ReaderAdapter } = await import("../src/renderer/reader-adapter");
+    const adapter = new ReaderAdapter(host);
+    const appearance = { theme: "custom" as const, backgroundColor: "#123456", fontSize: 18, margin: 48, lineHeight: 1.55, paragraphSpacing: 0.75, fontFamily: "Georgia" };
+    await adapter.open({ archiveBytes: new ArrayBuffer(0), mode: "continuous", appearance });
+    expect(host.style.backgroundColor).toBe("rgb(18, 52, 86)");
+    expect(renderedStyles(mockBook.renderTo())).toContain("background: #123456 !important");
+    expect(renderedStyles(mockBook.renderTo())).toContain("a { color: #ffffff !important; text-decoration: underline !important;");
+    await adapter.setMode("paginated", { ...appearance, backgroundColor: "#ffdd99" });
+    expect(renderedStyles(mockBook.renderTo())).toContain("background: #ffdd99 !important");
+    expect(renderedStyles(mockBook.renderTo())).toContain("color: #000000 !important");
+    await adapter.close();
+  });
+
   it("normalizes a missing XHTML head and preserves an existing head", () => {
     const doc = new DOMParser().parseFromString('<html xmlns="http://www.w3.org/1999/xhtml"><body><p>Text</p></body></html>', 'application/xhtml+xml');
     ensurePublicationHead(doc);

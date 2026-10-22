@@ -1,5 +1,7 @@
 import React, { forwardRef } from "react";
 import type { Appearance, LibraryBook, ReaderMode } from "../shared/contracts";
+import { ColorWheel } from "./color-wheel";
+import { defaultBackground } from "./appearance";
 
 const paths: Record<string, React.ReactNode> = {
   book: (
@@ -158,6 +160,11 @@ export function AppearanceControls({
             </button>
           ))}
         </div>
+        <ColorWheel
+          color={appearance.backgroundColor ?? defaultBackground}
+          active={appearance.theme === "custom"}
+          apply={backgroundColor => update({ ...appearance, theme: "custom", backgroundColor })}
+        />
       </fieldset>
       <label className="form-row">
         <span>Reading font</span>

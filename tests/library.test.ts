@@ -9,6 +9,21 @@ async function temporaryPath(name: string): Promise<string> {
 }
 
 describe("persistent local library", () => {
+  it("preserves custom page color across restart and preset switches", async () => {
+    const database = await temporaryPath("library.sqlite");
+    const repository = new LibraryRepository(database);
+    const original = repository.getPreferences();
+    expect(original.appearance.theme).toBe("system");
+    const appearance = { ...original.appearance, theme: "custom" as const, backgroundColor: "#173c69" };
+    repository.savePreferences({ appearance });
+    repository.close();
+    const restarted = new LibraryRepository(database);
+    expect(restarted.getPreferences().appearance).toEqual(appearance);
+    restarted.savePreferences({ appearance: { ...appearance, theme: "sepia" } });
+    expect(restarted.getPreferences().appearance).toEqual({ ...appearance, theme: "sepia" });
+    restarted.close();
+  });
+
   it("persists source references and normalized progress without copying the EPUB", async () => {
     const source = await temporaryPath("A Book.epub");
     await writeFile(source, Buffer.from("PK\x03\x04book"));

@@ -10,6 +10,14 @@ Settings → About displays the installed version. Builds configured for this re
 
 Windows installers are currently unsigned. Development builds and builds without a configured release repository show manual upgrade instructions.
 
+## Choose a reading background
+
+Open **Settings → Reading appearance**, or the **Reading appearance** controls inside a book. Under **Page theme**, use the color wheel to choose a hue and saturation, adjust **Brightness**, and choose **Apply custom color**. The preview shows the selected background with automatically contrasting text. You can also enter an exact six-digit hex color such as `#dce8da`.
+
+The wheel supports keyboard input: Left/Right changes hue, Up/Down changes saturation, and Shift makes larger adjustments. Brightness and hex color are keyboard-accessible too.
+
+Your applied color is saved on this device and used for every book in both reading modes. System, Light, Dark, and Sepia remain available, and switching to a preset retains your last custom color. The library and Settings keep their dark appearance.
+
 ## Develop
 
 Requires Windows x64, Node.js 24, and pnpm 12.5.1.

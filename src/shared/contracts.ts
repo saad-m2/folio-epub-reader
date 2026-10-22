@@ -38,13 +38,14 @@ export const SelectionSchema = z.object({ sessionId: id, text: z.string().min(1)
 export const TranslationRequestSchema = z.object({ sessionId: id, selectionId: id }).strict();
 export const ReaderModeSchema = z.enum(["continuous", "paginated"]);
 export const AppearanceSchema = z.object({
-  theme: z.enum(["system", "light", "dark", "sepia"]),
+  theme: z.enum(["system", "light", "dark", "sepia", "custom"]),
+  backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   fontSize: z.number().min(12).max(36),
   margin: z.number().min(16).max(120),
   lineHeight: z.number().min(1.1).max(2.5),
   paragraphSpacing: z.number().min(0).max(4),
   fontFamily: z.string().min(1).max(100).regex(/^[A-Za-z0-9 ]+$/),
-}).strict();
+}).strict().refine(value => value.theme !== "custom" || value.backgroundColor !== undefined, { message: "Custom themes require a background color", path: ["backgroundColor"] });
 export type ReaderMode = z.infer<typeof ReaderModeSchema>;
 export type Appearance = z.infer<typeof AppearanceSchema>;
 export const SettingsSchema = z.object({ mode: ReaderModeSchema.optional(), appearance: AppearanceSchema.optional() }).strict();

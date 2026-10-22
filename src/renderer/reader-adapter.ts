@@ -5,6 +5,7 @@ import type { NavItem } from "epubjs/types/navigation";
 import Section from "epubjs/types/section";
 import type { Appearance, ReaderLocation, ReaderMode } from "../shared/contracts";
 import { withTimeout } from "./operation-timeout";
+import { appearanceColors } from "./appearance";
 import { captureQuoteAtOffset, resolveReplacementLocation, type ReplacementBook } from "./reader-location";
 
 export type TocItem = { id: string; label: string; href: string; children: TocItem[] };
@@ -49,11 +50,6 @@ const anchorOf = (document: Document, fragment: string): Element | null => {
 
 function getSystemTheme(): "light" | "dark" {
   try { return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch { return "light"; }
-}
-
-function resolveTheme(theme: Appearance["theme"]): "light" | "dark" | "sepia" {
-  if (theme === "system") return getSystemTheme();
-  return theme;
 }
 
 const PAGINATED_CHAPTER_BREAK = `
@@ -475,10 +471,10 @@ export class ReaderAdapter {
   }
 
   private async style(appearance: Appearance): Promise<string> {
-    const resolved = resolveTheme(appearance.theme);
-    const colors = resolved === "dark" ? ["#d4d9cb", "#20251f"] : resolved === "sepia" ? ["#3b4035", "#eee7d8"] : ["#30372e", "#fafaf5"];
+    const palette = appearanceColors(appearance, getSystemTheme() === "dark");
+    const colors = [palette.color, palette.background];
     this.host.style.backgroundColor = colors[1]!;
-    const linkColors = resolved === "dark" ? ["#9ccbff", "#cab2ff"] : resolved === "sepia" ? ["#254f82", "#684281"] : ["#0645ad", "#663399"];
+    const linkColors = [palette.link, palette.visited];
     const family = /^[A-Za-z0-9 ]+$/.test(appearance.fontFamily) ? appearance.fontFamily : "Liberation Sans Reader";
     let fontFace = ReaderAdapter.fontCss.get(family);
     if (fontFace === undefined) {
@@ -497,7 +493,7 @@ export class ReaderAdapter {
       } catch { /* A missing font falls back to the system font without blocking reading. */ }
       ReaderAdapter.fontCss.set(family, fontFace);
     }
-    return `${fontFace} html, body { color: ${colors[0]} !important; background: ${colors[1]} !important; } body { font-family: '${family}', sans-serif !important; font-size: ${appearance.fontSize}px !important; line-height: ${appearance.lineHeight} !important; margin-left: ${appearance.margin}px !important; margin-right: ${appearance.margin}px !important; } p { margin-block: ${appearance.paragraphSpacing}em !important; } a { color: ${linkColors[0]} !important; } a:visited { color: ${linkColors[1]} !important; }`;
+    return `${fontFace} html, body { color: ${colors[0]} !important; background: ${colors[1]} !important; } body { font-family: '${family}', sans-serif !important; font-size: ${appearance.fontSize}px !important; line-height: ${appearance.lineHeight} !important; margin-left: ${appearance.margin}px !important; margin-right: ${appearance.margin}px !important; } p { margin-block: ${appearance.paragraphSpacing}em !important; } a { color: ${linkColors[0]} !important; ${appearance.theme === "custom" ? "text-decoration: underline !important;" : ""} } a:visited { color: ${linkColors[1]} !important; }`;
   }
 
   private async restore(location?: ReaderLocation): Promise<void> {
