@@ -27,6 +27,12 @@ Inspect `src/shared/contracts.ts`, `src/main/library.ts`, `src/renderer/reader-a
 
 The old request to choose and implement a visual direction is superseded by approved Design A, now integrated in the live renderer. Use the [design guide](../design/README.md) for new UI work and the [integration record](../historical/reviews/FRONTEND-IMPLEMENTATION.md) for recorded verification. The old three-alternative worktree instructions are history, not the current task setup.
 
+## Custom reading background: implemented
+
+Settings and in-book appearance controls now offer a color wheel, brightness slider, hex input, and preview. Applying a color saves it globally across restarts and both reading modes, with automatically contrasting text and underlined links. Presets retain the last custom color. See [reading appearance](PRODUCT.md#92-application-and-reader-themes) for behavior and the root [usage guide](../../README.md#choose-a-reading-background) for controls.
+
+Verification on 2026-10-22: type checking, all 157 unit/regression tests, and the production build passed. Settings was inspected in a browser with a mocked desktop API; this does not establish packaged Windows or Narrator qualification.
+
 ## Qualification follow-up
 
 Keep deferred distribution/accessibility checks and hosted update verification in [release qualification](../release/QUALIFICATION.md) and [updates](../release/UPDATES.md). Do not interpret archiving the initial epic plans as completing every original release gate.
