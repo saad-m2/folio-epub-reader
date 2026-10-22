@@ -33,4 +33,4 @@ Run actual Electron evidence with:
 pnpm --dir spikes/renderer-foliate run test:appearance
 ```
 
-The later SPIKE-001B workflow reached Foliate but ended `INVALID_RUN`: the harness incorrectly required an `index` field on the public `foliate-view` relocation event, although that wrapper event omits the inner renderer index. Raw output and attempt-specific evidence are retained under `evidence/`. The lightweight-renderer timebox is exhausted; do not run this command again without a new explicit architecture decision. See `docs/spikes/SPIKE-001B-REVIEW.md`.
+The later SPIKE-001B workflow reached Foliate but ended `INVALID_RUN`: the harness incorrectly required an `index` field on the public `foliate-view` relocation event, although that wrapper event omits the inner renderer index. Raw output and attempt-specific evidence are retained under `evidence/`. The lightweight-renderer timebox is exhausted; do not run this command again without a new explicit architecture decision. See `docs/historical/spikes/SPIKE-001B-REVIEW.md`.

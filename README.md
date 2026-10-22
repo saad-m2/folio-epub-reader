@@ -37,4 +37,4 @@ pnpm package:release
 
 Translation is optional. Start Ollama and install `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M`, then explicitly load the model in Settings → Local translation. Select a German passage in a book and choose Translate.
 
-See [release and update instructions](docs/UPDATES.md), [the product definition](docs/PRODUCT.md), and [the approved frontend design](design/frontend-a/README.md).
+Start with the [documentation map](docs/README.md) for task-specific guides, the [product definition](docs/product/PRODUCT.md), and the [roadmap](docs/product/ROADMAP.md). See [release and update instructions](docs/release/UPDATES.md) for distribution and the [design guide](docs/design/README.md) for UI work. Agent sessions start with [AGENTS.md](AGENTS.md).
