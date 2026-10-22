@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Folio — Desktop reader · Design A</title>
+    <title>Leaf — Desktop reader · Design A</title>
     <style>
       :root {
         color-scheme: dark;
@@ -1809,7 +1809,7 @@
     </svg>
     <header class="review">
       <div class="review-label">
-        DESIGN A <span>Folio / a quieter place to read</span>
+        DESIGN A <span>Leaf / a quieter place to read</span>
       </div>
       <nav class="review-nav" aria-label="Design preview">
         <button data-route="library">Library</button
@@ -2017,7 +2017,7 @@
       }
       const b = () => books[selected] || books[0] || originalBooks[0];
       function sidebar() {
-        return `<aside class="sidebar"><div class="brand">${icon("book")}Folio<span style="font:8px Arial;align-self:flex-start;margin-top:4px;letter-spacing:0;color:var(--muted)">A</span></div><div class="side-label">YOUR SPACE</div><nav class="side-nav" aria-label="Application"><button data-route="library" class="${route === "library" ? "active" : ""}">${icon("grid")}<span class="nav-name">My library</span><span class="count">${libraryState === "empty" ? 0 : books.length}</span></button></nav><div class="side-bottom"><nav class="side-nav"><button data-route="settings" class="${route === "settings" ? "active" : ""}">${icon("settings")}<span class="nav-name">Settings</span></button></nav><div class="local-note"><span class="dot"></span>Made for your books.<br>At home on your device.</div></div></aside>`;
+        return `<aside class="sidebar"><div class="brand">${icon("book")}Leaf<span style="font:8px Arial;align-self:flex-start;margin-top:4px;letter-spacing:0;color:var(--muted)">A</span></div><div class="side-label">YOUR SPACE</div><nav class="side-nav" aria-label="Application"><button data-route="library" class="${route === "library" ? "active" : ""}">${icon("grid")}<span class="nav-name">My library</span><span class="count">${libraryState === "empty" ? 0 : books.length}</span></button></nav><div class="side-bottom"><nav class="side-nav"><button data-route="settings" class="${route === "settings" ? "active" : ""}">${icon("settings")}<span class="nav-name">Settings</span></button></nav><div class="local-note"><span class="dot"></span>Made for your books.<br>At home on your device.</div></div></aside>`;
       }
       function appbar(label) {
         return `<div class="appbar"><div class="breadcrumb">Your reading space <span style="opacity:.4">/</span> <strong>${label}</strong></div><span class="small"><span class="dot"></span>Local library · No account needed</span></div>`;
@@ -2039,7 +2039,7 @@
       }
       function library() {
         if (libraryState === "empty" || !books.length)
-          return `<main class="library-main"><div class="empty"><div class="empty-art">${icon("book")}</div><div class="eyebrow">A little space for your stories</div><h1>Your next chapter starts here.</h1><p>Welcome to Folio. Add your first EPUB<br>and make yourself at home.</p><button class="btn primary" data-action="add">${icon("plus")}Add books</button></div></main>`;
+          return `<main class="library-main"><div class="empty"><div class="empty-art">${icon("book")}</div><div class="eyebrow">A little space for your stories</div><h1>Your next chapter starts here.</h1><p>Welcome to Leaf. Add your first EPUB<br>and make yourself at home.</p><button class="btn primary" data-action="add">${icon("plus")}Add books</button></div></main>`;
         return `<div class="main-layout"><main class="library-main"><div class="page-heading"><div><div class="eyebrow">Your own little world</div><h1>My library<span style="color:#64715f;font-size:20px;margin-left:12px">${books.length}</span></h1><p>Good books. Right where you left them.</p></div><button class="btn primary" data-action="add">${icon("plus")}Add books</button></div><section class="resume">${cover(books[0])}<div class="resume-copy"><div class="eyebrow">Pick up the story</div><h2>${esc(books[0].title)}</h2><p>${esc(books[0].author)} <span style="padding:0 7px;opacity:.5">/</span> Part I · 42% of chapter</p></div><button class="btn" data-action="resume">Continue reading ${icon("arrow")}</button></section><div class="section-heading"><h2>On your bookshelf</h2><span>Most recently opened first</span></div><section class="book-grid" aria-label="Your books">${books.map((book, i) => `<article class="book ${i === selected && detailsOpen ? "selected" : ""}"><button class="book-select" data-book="${i}" aria-label="Select ${esc(book.title)}. Double-click to read." aria-pressed="${i === selected && detailsOpen}"><div class="cover-wrap">${cover(book)}</div><div class="book-info"><span class="book-title">${esc(book.title)}</span><span class="book-author">${esc(book.author)}</span><div class="progress-row"><div class="track"><i style="width:${book.progress}%"></i></div><span>${book.progress ? book.progress + "%" : "Not started"}</span></div></div></button><button class="icon-btn book-menu" data-remove="${i}" aria-label="Remove ${esc(book.title)}">${icon("more")}</button></article>`).join("")}</section><div class="library-footer">${icon("info")} Double-click a cover to read. Your place is saved automatically.</div></main>${detailsOpen ? detail() : ""}</div>`;
       }
       function detail() {
@@ -2090,7 +2090,7 @@
         return `<h2>A good story deserves good type.</h2><p class="muted small">One font included. A couple more, if you like. Downloaded fonts work offline.</p><section class="card" style="padding:0 24px;margin-top:25px"><div class="font-card"><div class="font-sample" style="font-family:Arial">Aa</div><div class="font-description"><h3>Liberation Sans <span class="badge">Included</span></h3><p>Clean, familiar, and ready from your first page.<br>SIL Open Font License 1.1</p></div><span class="small muted">${icon("check")} Available</span></div><div class="font-card"><div class="font-sample" style="font-family:Georgia">Aa</div><div class="font-description"><h3>Source Serif 4 ${downloaded ? '<span class="badge">Available</span>' : ""}</h3><p>A warm, bookish serif for longer reads.<br>SIL Open Font License 1.1</p></div><button class="btn ${downloaded ? "" : "primary"}" data-action="download">${icon(downloaded ? "check" : "download")}${downloaded ? "Use font" : "Download"}</button></div><div class="font-card"><div class="font-sample" style="font-family:Verdana">Aa</div><div class="font-description"><h3>Atkinson Hyperlegible</h3><p>Distinct letterforms, designed for clarity.<br>SIL Open Font License 1.1</p></div><button class="btn" data-action="font-demo">${icon("download")}Download</button></div></section><div class="info-line">${icon("info")}<span>Type samples in this concept use system fonts. Downloads are simulated.</span></div>`;
       }
       function translationSettings() {
-        return `<div class="settings-grid"><section><h2>A little help between languages.</h2><p class="small muted">Translate selected German passages into English, without leaving your book. Entirely on your device.</p><div class="status-box"><div><h3><span class="dot" style="background:${model === "loaded" ? "var(--sage)" : "#c2ac7f"}"></span>${modelLabel()}</h3><p>${model === "loaded" ? "Ready when you ask. Text stays on your device." : "Reading works normally without translation."}</p></div>${["loaded", "unloaded"].includes(model) ? `<button class="btn ${model === "unloaded" ? "primary" : ""}" data-action="model">${model === "loaded" ? "Unload" : "Load model"}</button>` : `<button class="btn" data-action="recheck">Check again</button>`}</div><div class="card"><h3>Only when you ask</h3><p style="margin-bottom:0">Select a passage, then choose Translate. Selecting text alone never starts a translation or loads the model.</p></div><div class="info-line">${icon("leaf")}<span>No account. No API key. No per-translation charge.<br>Ordinary reading never depends on the model.</span></div></section><aside class="card"><h3>Set up once. Read at your own pace.</h3><div class="setup-step"><span class="step-number">1</span><div><h3>Install and start Ollama</h3><p>The local service that runs your translation model. Installed separately from Folio.</p></div></div><div class="setup-step"><span class="step-number">2</span><div><h3>Install the supported model</h3><p>Run this in your terminal after installing Ollama:</p><code>ollama pull hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M</code></div></div><div class="setup-step"><span class="step-number">3</span><div><h3>Load when you need it</h3><p>Use Load model here or in the reader. Unload it any time to free memory.</p></div></div><span class="badge">German → English</span></aside></div>`;
+        return `<div class="settings-grid"><section><h2>A little help between languages.</h2><p class="small muted">Translate selected German passages into English, without leaving your book. Entirely on your device.</p><div class="status-box"><div><h3><span class="dot" style="background:${model === "loaded" ? "var(--sage)" : "#c2ac7f"}"></span>${modelLabel()}</h3><p>${model === "loaded" ? "Ready when you ask. Text stays on your device." : "Reading works normally without translation."}</p></div>${["loaded", "unloaded"].includes(model) ? `<button class="btn ${model === "unloaded" ? "primary" : ""}" data-action="model">${model === "loaded" ? "Unload" : "Load model"}</button>` : `<button class="btn" data-action="recheck">Check again</button>`}</div><div class="card"><h3>Only when you ask</h3><p style="margin-bottom:0">Select a passage, then choose Translate. Selecting text alone never starts a translation or loads the model.</p></div><div class="info-line">${icon("leaf")}<span>No account. No API key. No per-translation charge.<br>Ordinary reading never depends on the model.</span></div></section><aside class="card"><h3>Set up once. Read at your own pace.</h3><div class="setup-step"><span class="step-number">1</span><div><h3>Install and start Ollama</h3><p>The local service that runs your translation model. Installed separately from Leaf.</p></div></div><div class="setup-step"><span class="step-number">2</span><div><h3>Install the supported model</h3><p>Run this in your terminal after installing Ollama:</p><code>ollama pull hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M</code></div></div><div class="setup-step"><span class="step-number">3</span><div><h3>Load when you need it</h3><p>Use Load model here or in the reader. Unload it any time to free memory.</p></div></div><span class="badge">German → English</span></aside></div>`;
       }
       function modelLabel() {
         return (
@@ -2105,7 +2105,7 @@
         );
       }
       function aboutSettings() {
-        return `<div class="card" style="max-width:660px"><div class="brand" style="padding:0 0 20px">${icon("book")}Folio</div><h2>A quieter place to read.</h2><p>A local-first EPUB reader for Windows. Your own books, a remembered place, and enough room to get lost in the story.</p><div class="form-row"><span class="small muted">Design direction</span><span class="small">A · Quiet bookshelf</span></div><div class="form-row"><span class="small muted">Working product name</span><span class="small">Folio · proposed</span></div><p class="preview-callout">This is a standalone design prototype. Books, progress, downloads, and translation are sample interactions. Nothing connects to your library or Ollama.</p></div>`;
+        return `<div class="card" style="max-width:660px"><div class="brand" style="padding:0 0 20px">${icon("book")}Leaf</div><h2>A quieter place to read.</h2><p>A local-first EPUB reader for Windows. Your own books, a remembered place, and enough room to get lost in the story.</p><div class="form-row"><span class="small muted">Design direction</span><span class="small">A · Quiet bookshelf</span></div><div class="form-row"><span class="small muted">Product name</span><span class="small">Leaf</span></div><p class="preview-callout">This is a standalone design prototype. Books, progress, downloads, and translation are sample interactions. Nothing connects to your library or Ollama.</p></div>`;
       }
       const german = [
         [
@@ -2205,7 +2205,7 @@
           ["reading", "Reading appearance"],
           ["fonts", "Downloadable fonts"],
           ["translation", "Local model setup"],
-          ["about", "About Folio"],
+          ["about", "About Leaf"],
         ]
           .map(([v, l]) => `<button data-setting="${v}">${l} →</button>`)
           .join("")}${[
@@ -2216,7 +2216,7 @@
           .map(([v, l]) => `<button data-scenario="${v}">${l} →</button>`)
           .join(
             "",
-          )}</section></div><div class="design-notes"><div><h3>Aquile’s structure. A softer atmosphere.</h3><p>A cover-led grid, a slim navigation rail, a book detail pane, and reader overlays take inspiration from Aquile’s Windows interface. Charcoal surfaces, sage accents, fine dividers, and quiet typography give this direction its own character.</p><a class="small" href="https://www.aquilereader.in/images/feature1.png" target="_blank" rel="noreferrer">View the Aquile desktop reference ↗</a></div><div><h3>Designed around this product.</h3><p>Library, Reader, and Settings stay central. Store, account, cloud sync, annotations, search, and statistics are outside the agreed MVP. Folio is a proposed name. All covers are original SVG studies for this concept.</p><p>This preview uses simulated data and interactions. It does not import EPUBs, install fonts, run a model, or change the application.</p></div></div></main>`;
+          )}</section></div><div class="design-notes"><div><h3>Aquile’s structure. A softer atmosphere.</h3><p>A cover-led grid, a slim navigation rail, a book detail pane, and reader overlays take inspiration from Aquile’s Windows interface. Charcoal surfaces, sage accents, fine dividers, and quiet typography give this direction its own character.</p><a class="small" href="https://www.aquilereader.in/images/feature1.png" target="_blank" rel="noreferrer">View the Aquile desktop reference ↗</a></div><div><h3>Designed around this product.</h3><p>Library, Reader, and Settings stay central. Store, account, cloud sync, annotations, search, and statistics are outside the agreed MVP. Leaf is the product name. All covers are original SVG studies for this concept.</p><p>This preview uses simulated data and interactions. It does not import EPUBs, install fonts, run a model, or change the application.</p></div></div></main>`;
       }
       function navigate(next) {
         clearTimeout(translationTimer);
@@ -2277,7 +2277,7 @@
       function removeModal() {
         modal(
           "Remove from your library?",
-          `<p>This removes the book and its saved reading progress from Folio.</p>${modalBook()}<div class="notice">Your original EPUB file stays exactly where it is.</div>`,
+          `<p>This removes the book and its saved reading progress from Leaf.</p>${modalBook()}<div class="notice">Your original EPUB file stays exactly where it is.</div>`,
           actionBtn("dismiss", "Keep book") +
             actionBtn("confirm-remove", "Remove book", false, true),
           "warning",

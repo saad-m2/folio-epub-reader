@@ -1,4 +1,4 @@
-# Folio — Windows EPUB Reader
+# Leaf — Windows EPUB Reader
 
 A desktop EPUB reader for Windows x64, with a visual library, saved reading positions, continuous and paginated reading, reading themes, and optional local German-to-English translation through Ollama.
 

@@ -1,5 +1,7 @@
 # Historical documentation
 
+The app was renamed from Folio to **Leaf** on 2026-10-22. Original product names in these records are preserved as history; use Leaf in current guides and new work.
+
 Archived on 2026-10-22 after reviewing project documentation and comparing current behavior with source. These files retain original dates, proposals, review findings, decisions, acceptance criteria, and recorded verification. Their historical banners and repaired paths do not change the original conclusions.
 
 Start new work with the [current documentation map](../README.md). This archive is for targeted background research. Statements such as "no renderer selected," "implementation has not started," old dependency pins, or spike stop rules describe the stage at which they were written.

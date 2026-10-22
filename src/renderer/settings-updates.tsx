@@ -3,14 +3,14 @@ import type { UpdateStatus } from "../main/updates";
 
 type Result = { ok: true; value: UpdateStatus } | { ok: false };
 const labels: Record<UpdateStatus["state"], string> = {
-  unconfigured: "Online updates are not configured for this build. To update, close Folio and run the newer Windows EPUB Reader installer. Your library, reading positions, preferences, and downloaded fonts stay on this device.",
+  unconfigured: "Online updates are not configured for this build. To update, close Leaf and run the newer installer (WindowsEpubReaderSetup.exe). Your library, reading positions, preferences, and downloaded fonts stay on this device.",
   unavailable: "Online updates are available in the installed Windows app.",
   "first-run": "Setup is finishing. Please wait a moment before checking for updates.",
   idle: "Check GitHub Releases for a newer version. If available, it will download so you can install it when ready.",
   checking: "Checking for updates…",
   downloading: "Downloading the new version… You can continue reading.",
   current: "You are up to date.",
-  ready: "An update is ready. Restart Folio to install it. Your library and preferences will be kept.",
+  ready: "An update is ready. Restart Leaf to install it. Your library and preferences will be kept.",
   error: "The update could not be completed. Check your connection and try again.",
 };
 

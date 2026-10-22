@@ -14,6 +14,7 @@ import { runReleaseTests } from "./release-tests";
 import { configureOfflineQualification } from "./offline-test";
 import { UpdateController } from "./updates";
 
+app.setName("Leaf");
 configurePaths();
 configureOfflineQualification();
 protocol.registerSchemesAsPrivileged([{ scheme: "app", privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true } }]);
@@ -312,7 +313,7 @@ registerIntent("installAppUpdate", async event => {
   const owner = BrowserWindow.fromWebContents(event.sender);
   if (!owner) throw safeError("UNAUTHORIZED");
   const confirmation = await dialog.showMessageBox(owner, {
-    type: "question", title: "Install app update", message: "Restart Folio and install the downloaded update?",
+    type: "question", title: "Install app update", message: "Restart Leaf and install the downloaded update?",
     detail: "Your library, reading positions, preferences, and downloaded fonts will be kept.",
     buttons: ["Restart and install", "Later"], defaultId: 1, cancelId: 1, noLink: true,
   });

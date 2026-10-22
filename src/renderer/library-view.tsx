@@ -149,7 +149,7 @@ export function LibraryView({
             Your next chapter starts here.
           </h1>
           <p>
-            Welcome to Folio. Add your first EPUB
+            Welcome to Leaf. Add your first EPUB
             <br />
             and make yourself at home.
           </p>

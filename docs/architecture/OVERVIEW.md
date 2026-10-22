@@ -4,7 +4,7 @@ Status: current implementation guide, checked against source on 2026-10-22. The 
 
 ## Runtime and ownership
 
-Folio uses Electron, TypeScript, React, Vite, epub.js, JSZip, and Zod. SQLite uses Node's built-in `node:sqlite` binding in main, rather than the `better-sqlite3` binding proposed in older plans. `package.json` and the lockfile define exact versions. The live UI implements the approved Quiet bookshelf design with shared React controls and CSS; the presence of Fluent UI in dependencies does not describe the current component structure.
+Leaf uses Electron, TypeScript, React, Vite, epub.js, JSZip, and Zod. SQLite uses Node's built-in `node:sqlite` binding in main, rather than the `better-sqlite3` binding proposed in older plans. `package.json` and the lockfile define exact versions. The live UI implements the approved Quiet bookshelf design with shared React controls and CSS; the presence of Fluent UI in dependencies does not describe the current component structure.
 
 There is one BrowserWindow, one active publication, and Library, Reader, and Settings routes. Main owns filesystem access, library persistence, native dialogs, app lifecycle, font downloads, confirmed external links, updates, and the fixed local Ollama gateway. The sandboxed renderer owns React UI, bounded EPUB validation, layout, and the transient archive. Preload exposes named operations; main validates payloads, sender frame/origin, and session ownership as applicable.
 
@@ -43,6 +43,8 @@ Locations include normalized href, optional CFI, bounded quote/context, navigati
 Mode switching aims to retain the same logical passage. Appearance or window reflow follows the distinct rule of returning to the active section start, or current resource start without usable navigation. Paginated mode currently forces a spread; a separate single-page layout preference remains [pending](../product/ROADMAP.md).
 
 ## Optional services and delivery
+
+The current product name is Leaf, formerly Folio. Runtime and Windows product display names use Leaf. Legacy package/executable/Squirrel identifiers, the Windows EPUB Reader data path, and the configured GitHub release repository are retained for compatibility; see [release naming](../release/UPDATES.md#product-name-and-upgrade-compatibility).
 
 The [local translation decision](decisions/LOCAL-TRANSLATION.md) defines fixed loopback Ollama access, explicit Load/Unload, session-bound selected-text translation, cancellation, and temporary plain-text results. The font manager bundles Liberation Sans and offers pinned Atkinson Hyperlegible and Source Serif 4 downloads with integrity checks and offline cache use.
 

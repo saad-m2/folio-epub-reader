@@ -1,6 +1,6 @@
 # Documentation map
 
-Start here when working on Folio. Read the topic needed for the task, then inspect the linked implementation. This index and the current guides were reconciled with the repository on 2026-10-22; this was a documentation review, not a fresh runtime qualification.
+Start here when working on Leaf. Read the topic needed for the task, then inspect the linked implementation. This index and the current guides were reconciled with the repository on 2026-10-22; this was a documentation review, not a fresh runtime qualification.
 
 ## Where to look
 

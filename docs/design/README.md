@@ -1,6 +1,6 @@
 # Design and UI
 
-The approved direction is Design A, Quiet bookshelf, implemented in the live React renderer under the Folio name. [Prototype and design rationale](frontend-a/README.md) and the [standalone HTML](frontend-a/index.html) preserve the original review reference. Prototype imports, pagination, fonts, and translation are simulated; use the application source for implemented behavior.
+The approved direction is Design A, Quiet bookshelf, implemented in the live React renderer under the Leaf name. [Prototype and design rationale](frontend-a/README.md) and the [standalone HTML](frontend-a/index.html) retain the approved visual reference with branding updated to Leaf. Prototype imports, pagination, fonts, and translation are simulated; use the application source for implemented behavior.
 
 ## Current visual rules
 

@@ -605,7 +605,7 @@ export function SettingsView({
           <div className="card" style={{ maxWidth: 660 }}>
             <div className="brand" style={{ padding: "0 0 20px" }}>
               <Icon name="book" />
-              Folio
+              Leaf
             </div>
             <h2>A quieter place to read.</h2>
             <p>

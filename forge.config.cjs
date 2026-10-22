@@ -1,5 +1,7 @@
 module.exports = {
   packagerConfig: {
+    // Keep the existing package/output identity for installed-app upgrades.
+    name: "windows-epub-reader",
     asar: true,
     // Renderer dependencies are compiled into Vite assets. Main requires only
     // zod; retain epub.js source as patch/provenance evidence as well.
@@ -10,9 +12,9 @@ module.exports = {
     appCopyright: "Copyright (c) 2025 Windows EPUB Reader contributors",
     win32metadata: {
       CompanyName: "Windows EPUB Reader contributors",
-      FileDescription: "A hardened local EPUB reader",
+      FileDescription: "Leaf EPUB reader",
       OriginalFilename: "WindowsEpubReader.exe",
-      ProductName: "Windows EPUB Reader",
+      ProductName: "Leaf",
       InternalName: "WindowsEpubReader",
     },
   },
@@ -21,6 +23,7 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         name: "WindowsEpubReader",
+        title: "Leaf",
         setupExe: "WindowsEpubReaderSetup.exe",
         noMsi: true,
       },

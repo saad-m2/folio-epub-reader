@@ -1,5 +1,6 @@
 {
   "name": "windows-epub-reader",
+  "productName": "Leaf",
   "version": "0.2.0",
   "updateRepository": "saad-m2/folio-epub-reader",
   "private": true,

@@ -1,6 +1,6 @@
 # Documentation policy
 
-Keep enough durable context for the next task without requiring a full repository read. This policy applies to future work on Folio.
+Keep enough durable context for the next task without requiring a full repository read. This policy applies to future work on Leaf.
 
 ## During each task
 

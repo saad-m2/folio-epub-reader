@@ -2,7 +2,7 @@
 
 Open **[index.html](index.html)** directly in a desktop browser. Everything is included in the HTML; no server, installation, internet connection, or app build is needed.
 
-This file preserves the approved review prototype, separate from the live application. The approved design has now been implemented in the renderer; see the [current design guide](../README.md) and historical [implementation and validation notes](../../historical/reviews/FRONTEND-IMPLEMENTATION.md). Folio is the interface identity from the approved design; the application package and data-directory identities are unchanged.
+This file preserves the approved review prototype, separate from the live application. The approved design has now been implemented in the renderer; see the [current design guide](../README.md) and historical [implementation and validation notes](../../historical/reviews/FRONTEND-IMPLEMENTATION.md). Leaf is the interface identity from the approved design; the application package and data-directory identities are unchanged.
 
 ## Design decision
 

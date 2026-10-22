@@ -1,4 +1,4 @@
-# Windows EPUB Reader — Product Definition
+# Leaf — Product Definition
 
 **Status:** Authoritative product definition  
 **Purpose:** Define what the product is and how it behaves, without prescribing how it is implemented.

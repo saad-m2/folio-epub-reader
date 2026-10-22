@@ -1,4 +1,4 @@
-# Windows EPUB Reader — Release Evidence Pack
+# Leaf — Release Evidence Pack
 
 Reusable template for the Windows 11 x64 release evidence pack. Copy and fill it for a specific candidate in the local `release-artifacts/` evidence directory; placeholders below are not verification results. Read the [qualification scope](../QUALIFICATION.md) and [publishing instructions](../UPDATES.md). Review and sanitize generated evidence before sharing.
 

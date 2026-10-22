@@ -1,6 +1,6 @@
-# Folio project guidance
+# Leaf project guidance
 
-Folio is a local-first Windows 11 x64 EPUB reader built with Electron, TypeScript, React, and epub.js. It references original books and offers optional local German-to-English translation through Ollama.
+Leaf is a local-first Windows 11 x64 EPUB reader built with Electron, TypeScript, React, and epub.js. It references original books and offers optional local German-to-English translation through Ollama.
 
 ## Find context for a task
 

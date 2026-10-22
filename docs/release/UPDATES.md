@@ -1,8 +1,12 @@
 # Windows releases and updates
 
+## Product name and upgrade compatibility
+
+The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
+
 ## Install version 0.2.0
 
-Close Windows EPUB Reader/Folio and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from 0.1.0; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
+Close Windows EPUB Reader/Leaf and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from 0.1.0; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
 The installer is unsigned. A local build is not a published GitHub release.
 

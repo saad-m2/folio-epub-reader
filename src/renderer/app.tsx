@@ -386,7 +386,7 @@ export function App(): React.ReactElement {
           <aside className="sidebar">
             <div className="brand">
               <Icon name="book" size={28} />
-              Folio
+              Leaf
             </div>
             <div className="side-label">YOUR SPACE</div>
             <nav className="side-nav" aria-label="Application">
@@ -536,7 +536,7 @@ export function App(): React.ReactElement {
             </div>
             <DialogTitle>Remove from your library?</DialogTitle>
             <p>
-              This removes the book and its saved reading progress from Folio.
+              This removes the book and its saved reading progress from Leaf.
             </p>
             {removeTarget && (
               <div className="modal-book">
