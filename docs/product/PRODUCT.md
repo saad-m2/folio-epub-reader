@@ -386,7 +386,7 @@ Raw technical errors are not shown by default.
 
 ### 11.1 App updates
 
-Settings → About shows the installed version and provides an explicit **Check for updates** action when updates are configured for the installed Windows x64 app. There is no scheduled or startup check. A newer version downloads after the requested check; once ready, **Restart and install** asks for confirmation and closes active reading/model resources before restarting. A downloaded update can also apply on a later normal restart. Builds without a configured update source explain how to upgrade manually. Updates preserve the user's library, reading positions, preferences, and downloaded fonts. See [update and release instructions](../release/UPDATES.md) for configuration and qualification.
+Settings → App updates shows the installed version and provides an explicit **Check for updates** action when updates are configured for the installed Windows x64 app (version 0.2.0 placed these controls under About). There is no scheduled or startup check. A newer version downloads after the requested check; the panel shows checking/downloading status and prevents duplicate actions. Once ready, **Restart and install** asks for confirmation and closes active reading/model resources before restarting. A downloaded update can also apply on a later normal restart. Builds without a configured update source explain how to upgrade manually. Updates preserve the user's library, reading positions, preferences, and downloaded fonts. See [update and release instructions](../release/UPDATES.md) for configuration and qualification.
 
 ## 12. MVP boundaries
 

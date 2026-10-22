@@ -33,6 +33,10 @@ Settings and in-book appearance controls now offer a color wheel, brightness sli
 
 Verification on 2026-10-22: type checking, all 157 unit/regression tests, and the production build passed. Settings was inspected in a browser with a mocked desktop API; this does not establish packaged Windows or Narrator qualification.
 
+## In-app update discovery: implemented
+
+Version 0.2.1 exposes **Settings → App updates** with the running version, explicit **Check for updates**, checking/download status, retry, and **Restart and install** after download. The existing main-process Squirrel updater handles downloads; opening Settings does not check the network automatically. Version 0.2.0's update controls remain under About. See [updates](../release/UPDATES.md) for publishing and hosted-flow qualification.
+
 ## Qualification follow-up
 
 Keep deferred distribution/accessibility checks and hosted update verification in [release qualification](../release/QUALIFICATION.md) and [updates](../release/UPDATES.md). Do not interpret archiving the initial epic plans as completing every original release gate.

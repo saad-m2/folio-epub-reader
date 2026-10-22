@@ -36,6 +36,7 @@ const tabs = [
   ["reading", "Reading appearance"],
   ["fonts", "Font library"],
   ["translation", "Local translation"],
+  ["updates", "App updates"],
   ["about", "About"],
 ] as const;
 type Tab = (typeof tabs)[number][0];
@@ -630,7 +631,14 @@ export function SettingsView({
               temporary and are not saved to your book.
             </p>
           </div>
-          {tab === "about" && <SettingsUpdates />}
+        </section>
+        <section
+          role="tabpanel"
+          id="settings-panel-updates"
+          aria-labelledby="settings-tab-updates"
+          hidden={tab !== "updates"}
+        >
+          {tab === "updates" && <SettingsUpdates />}
         </section>
       </div>
     </main>

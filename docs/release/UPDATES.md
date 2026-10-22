@@ -4,17 +4,17 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.2.0
+## Install version 0.2.1
 
-Close Windows EPUB Reader/Leaf and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from 0.1.0; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
+Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from 0.1.0 or 0.2.0; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
 The installer is unsigned. A local build is not a published GitHub release.
 
 ## In-app updates
 
-The release repository is [saad-m2/folio-epub-reader](https://github.com/saad-m2/folio-epub-reader). Version 0.2.0 is configured for that repository.
+The release repository is [saad-m2/folio-epub-reader](https://github.com/saad-m2/folio-epub-reader). Versions 0.2.0 and 0.2.1 are configured for that repository.
 
-Settings → About shows the actual running version and update status. Checking is explicit: no startup check, scheduled check, or background network request runs until the user chooses **Check for updates**. A newer release downloads through Electron's built-in Windows Squirrel updater. Once ready, **Restart and install** requests confirmation and releases publications and the translation model before restarting. A downloaded update can also apply on a later normal app restart.
+In 0.2.1, **Settings → App updates** shows the actual running version and update status; 0.2.0 has these controls under **Settings → About**. Checking is explicit: no startup check, scheduled check, or background network request runs until the user chooses **Check for updates**. A newer release downloads through Electron's built-in Windows Squirrel updater. The panel shows checking/downloading status and prevents duplicate actions. Once ready, **Restart and install** requests confirmation and releases publications and the translation model before restarting. A downloaded update can also apply on a later normal app restart.
 
 The updater is enabled only for an installed Windows x64 build with a trusted build-time `package.json` field:
 
@@ -33,8 +33,14 @@ The repository must be public and have published, non-prerelease GitHub Releases
 3. Run `pnpm check`, `pnpm test`, and `pnpm package:release` on Windows.
 4. Tag that tested commit with the matching version, for example `v0.2.1`, and push it to the configured GitHub repository when ready to publish.
 5. The existing CI workflow builds and verifies the installer, then creates a **draft** release containing `WindowsEpubReaderSetup.exe`, `RELEASES`, the `*-full.nupkg` package, and supply-chain evidence. Review and publish that draft as a normal release. All three Squirrel files are required; Setup.exe alone cannot serve the updater.
-6. From an older installed version, use Settings → About → Check for updates, then Restart and install. Confirm the new version and preserved library/settings.
+6. From 0.2.0, use Settings → About → Check for updates, then Restart and install. From 0.2.1 onward, use Settings → App updates. Confirm the new version and preserved library/settings.
 
 Release access and a published newer version are required to qualify the real hosted download/restart flow. Local controller tests cannot establish that the release service is working. Do not describe it as verified until that two-version installed test has run.
+
+A locally verified release can also be published with `gh release create vVERSION --target TESTED_COMMIT` and the exact installer, `RELEASES`, full NuGet package, and supply-chain reports from `pnpm package:release`. Upload all files before publishing the release as latest. License reports use repository-relative paths so published evidence does not expose the build user's home directory.
+
+## 0.2.1 verification
+
+On 2026-10-22, `pnpm check`, all 159 unit/regression tests, and `pnpm package:release` passed on Windows x64. The release pipeline built the installer, checked dependencies/licenses and packaged contents, and passed all 12 packaged runtime fixtures with an isolated test profile. The App updates tab was also inspected through simulated download/ready states in a browser with a mocked desktop API. The real older-installed-version hosted download/restart flow and Narrator/physical-DPI checks remain unrun for this candidate.
 
 No dependencies or renderer network permissions were added for this feature. Update checks/downloads occur in the main process through Electron/Squirrel.

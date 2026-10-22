@@ -134,7 +134,9 @@ async function main() {
   for (const [depKey, depInfo] of Object.entries(deps)) {
     const licenses = (depInfo.licenses || "UNKNOWN").split(";").map(l => l.trim());
     const repo = depInfo.repository || depInfo.url || "unknown";
-    const licenseFile = depInfo.licenseFile || "none";
+    const licenseFile = depInfo.licenseFile
+      ? path.relative(path.join(__dirname, ".."), depInfo.licenseFile).split(path.sep).join("/")
+      : "none";
 
     let status = "unknown";
     let reason = "";

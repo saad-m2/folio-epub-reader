@@ -63,6 +63,7 @@ export function SettingsUpdates(): React.ReactElement {
     </div>
     <p aria-live="polite">{status ? labels[status.state] : "Loading update status…"}</p>
     {canCheck && <button className="btn primary" disabled={busy} onClick={() => void act(false)}>Check for updates</button>}
+    {(status?.state === "checking" || status?.state === "downloading") && <button className="btn primary" disabled aria-busy="true">{status.state === "checking" ? "Checking…" : "Downloading…"}</button>}
     {status?.state === "ready" && <button className="btn primary" disabled={busy} onClick={() => void act(true)}>Restart and install</button>}
     <p className="small muted">Updates are checked only when you choose. Checking downloads an available update; it is applied when you restart the app.</p>
     {notice && <div role="alert"><p>{notice}</p><button className="btn" disabled={busy} onClick={() => void refresh()}>Try again</button></div>}
