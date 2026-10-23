@@ -37,7 +37,7 @@ child.on('exit', code => {
   let evidenceValid = false;
   if (fs.existsSync(evidence)) {
     const report = JSON.parse(fs.readFileSync(evidence, 'utf8'));
-    evidenceValid = development || (report.packaged === true && report.versions.electron === '42.11.6' && report.fixtures?.find(f => f.name === 'deep-marker.epub')?.result?.binaryResources === true);
+    evidenceValid = development || (report.packaged === true && report.versions.electron === '42.11.18' && report.fixtures?.find(f => f.name === 'deep-marker.epub')?.result?.binaryResources === true);
     report.artifact = artifact();
     fs.writeFileSync(evidence, JSON.stringify(report, null, 2));
   }

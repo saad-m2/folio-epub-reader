@@ -5,7 +5,7 @@ const path = require("node:path");
 
 const root = path.join(__dirname, "..");
 const output = path.join(root, "release-artifacts");
-const requiredPins = { electron: "42.11.6", epubjs: "0.3.93" };
+const requiredPins = { electron: "42.11.18", epubjs: "0.3.93" };
 const installer = path.join(root, "out", "make", "squirrel.windows", "x64", "WindowsEpubReaderSetup.exe");
 const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
 const dependencies = { ...pkg.dependencies, ...pkg.devDependencies };

@@ -6,7 +6,7 @@ A desktop EPUB reader for Windows x64, with a visual library, saved reading posi
 
 Download `WindowsEpubReaderSetup.exe` from this repository's **Releases** and run it. Close an older running version first. The installer upgrades the existing Windows EPUB Reader installation and keeps its library, reading positions, preferences, and downloaded fonts. Original EPUB files remain in their own locations.
 
-In version 0.2.1, **Settings → App updates** displays the installed version. Choose **Check for updates** to look for and download a newer release, then **Restart and install** once it is ready. Version 0.2.0 has these controls under **Settings → About**. Reading works offline; checking for app updates requires an internet connection.
+In version 0.2.1 and later, **Settings → App updates** displays the installed version. Choose **Check for updates** to look for and download a newer release, then **Restart and install** once it is ready. Version 0.2.0 has these controls under **Settings → About**. Reading works offline; checking for app updates requires an internet connection.
 
 Windows installers are currently unsigned. Development builds and builds without a configured release repository show manual upgrade instructions.
 

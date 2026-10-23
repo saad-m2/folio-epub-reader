@@ -12,6 +12,7 @@ overrides:
   http-cache-semantics: 4.3.0
   source-map-js: 1.2.2
   tar: 7.5.22
+  ip-address: 10.7.4
 nodeLinker: hoisted
 onlyBuiltDependencies:
   - electron
