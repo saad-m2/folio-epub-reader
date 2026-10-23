@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text } from "@fluentui/react-components";
-import { Button, Icon, ModeSwitch, AppearanceControls } from "./ui";
+import { Button, Icon, ModeSwitch, PageLayoutSwitch, AppearanceControls } from "./ui";
 import { appearanceColors } from "./appearance";
 import type { FontEntry } from "./settings";
 import type {
   Appearance,
+  PageLayout,
   ReaderLocation,
   ReaderMode,
 } from "../shared/contracts";
@@ -17,7 +18,7 @@ import {
 
 type Result<T> =
   { ok: true; value: T } | { ok: false; error: { code: string } };
-export type Settings = { mode: ReaderMode; appearance: Appearance };
+export type Settings = { mode: ReaderMode; pageLayout: PageLayout; appearance: Appearance };
 export type BookSession = {
   bookId: string;
   sessionId: string;
@@ -432,6 +433,7 @@ export function Reader({
         archiveBytes: session.archiveBytes,
         mode: settings.mode,
         appearance: settings.appearance,
+        pageLayout: settings.pageLayout,
         initialLocation: session.initialLocation,
       })
       .then(setSnapshot)
@@ -686,10 +688,24 @@ export function Reader({
     setPreferencesBusy(true);
     try {
       await saveSettings({ mode });
-      setSnapshot(await adapter.current.setMode(mode, settings.appearance));
+      setSnapshot(await adapter.current.setMode(mode, settings.appearance, settings.pageLayout));
       setAppliedMode(mode);
     } catch {
       setError("The reading mode could not be changed. Try again.");
+    } finally {
+      preferenceLock.current = false;
+      setPreferencesBusy(false);
+    }
+  }
+  async function switchPageLayout(pageLayout: PageLayout): Promise<void> {
+    if (preferenceLock.current || !adapter.current || pageLayout === settings.pageLayout) return;
+    preferenceLock.current = true;
+    setPreferencesBusy(true);
+    try {
+      await saveSettings({ pageLayout });
+      setSnapshot(await adapter.current.setPageLayout(pageLayout, settings.appearance));
+    } catch {
+      setError("The page layout could not be changed. Try again.");
     } finally {
       preferenceLock.current = false;
       setPreferencesBusy(false);
@@ -738,7 +754,7 @@ export function Reader({
     window.addEventListener("reader-proof-switch", switchForProof);
     return () =>
       window.removeEventListener("reader-proof-switch", switchForProof);
-  }, [proof, settings.mode, settings.appearance, appliedMode]);
+  }, [proof, settings.mode, settings.pageLayout, settings.appearance, appliedMode]);
   return (
     <section
       className={`reader theme-${settings.appearance.theme}`}
@@ -947,6 +963,12 @@ export function Reader({
                 onChange={(mode) => void switchMode(mode)}
               />
             </div>
+            {appliedMode === "paginated" && (
+              <div className="form-row">
+                <span>Page layout</span>
+                <PageLayoutSwitch layout={settings.pageLayout} onChange={(layout) => void switchPageLayout(layout)} />
+              </div>
+            )}
             <AppearanceControls
               appearance={settings.appearance}
               update={(next) => void updateAppearance(next)}

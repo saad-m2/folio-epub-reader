@@ -10,18 +10,13 @@ Before implementation, agree on a supported-format matrix and each format's limi
 
 Inspect `src/main/index.ts`, `src/main/publications.ts`, `src/main/library.ts`, shared contracts, renderer validation, and reader adapters.
 
-## Single-page pagination: pending
+## Single-page pagination: implemented
 
-The user requested an undivided single-page view with page turns, retaining two-page reading as a separate choice. The adapter currently uses `spread: "always"` for paginated mode; persisted preferences distinguish continuous from paginated mode but have no separate page-layout choice.
+Page-by-page mode now defaults to an undivided **Single page** layout. Settings and the in-reader appearance panel offer **Single page / Two pages** separately from the reading-mode switch. The global layout preference persists across books and restarts; scrolling retains the saved layout for the next switch back to pagination. Two-page reading falls back to one page in narrow windows.
 
-Acceptance carried forward from the request:
+Layout and mode changes use semantic passage restoration. Appearance and window-size changes retain the existing section-start reflow rule. Previous/next, keyboard, wheel, and edge-click navigation share the same paginated interaction path in both layouts.
 
-- Offer and persist a global single-page/two-page choice for paginated reading.
-- Keep previous/next, keyboard, wheel, and edge-click navigation working in both layouts.
-- Preserve semantic position when changing layout or mode. Test resize and appearance changes against the existing reflow rule; agree explicitly if this feature should change that rule.
-- Verify chapter boundaries, narrow/wide windows, appearance changes, restart, and reopening.
-
-Inspect `src/shared/contracts.ts`, `src/main/library.ts`, `src/renderer/reader-adapter.ts`, `reader.tsx`, `settings.tsx`, and relevant adapter/location tests.
+Verification on 2026-10-22: type checking, all 162 unit/regression tests, production build, and the isolated development Electron corpus passed. The corpus measures single-page/spread column widths and exercises page turns in both layouts across the supported fixtures. Persistence regressions cover defaults, mode changes, and database restart. Settings and in-reader controls were inspected with a mocked desktop API; the reader switched between full-width single-page and two-column layouts at 1280px and fell back to one page at 700px. This is development verification, not packaged Windows or Narrator qualification.
 
 ## Frontend redesign: implemented
 

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import type { Appearance, ReaderMode } from "../shared/contracts";
-import { AppearanceControls, Icon, ModeSwitch } from "./ui";
+import type { Appearance, PageLayout, ReaderMode } from "../shared/contracts";
+import { AppearanceControls, Icon, ModeSwitch, PageLayoutSwitch } from "./ui";
 import { SettingsUpdates } from "./settings-updates";
 import { appearanceColors } from "./appearance";
 
@@ -12,7 +12,7 @@ export type FontEntry = {
   bundled: boolean;
   license?: { name: string; url: string; copyright: string };
 };
-type Settings = { mode: ReaderMode; appearance: Appearance };
+type Settings = { mode: ReaderMode; pageLayout: PageLayout; appearance: Appearance };
 type ModelState =
   | "unavailable"
   | "missing"
@@ -258,6 +258,12 @@ export function SettingsView({
                     onChange={(mode) => void save({ mode })}
                   />
                 </div>
+                {settings.mode === "paginated" && (
+                  <div className="form-row">
+                    <span className="small">Page layout</span>
+                    <PageLayoutSwitch layout={settings.pageLayout} onChange={(pageLayout) => void save({ pageLayout })} />
+                  </div>
+                )}
                 <AppearanceControls
                   appearance={settings.appearance}
                   update={(appearance) => {

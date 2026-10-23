@@ -144,21 +144,22 @@ export class LibraryRepository {
     this.db.prepare("INSERT INTO reading_positions(book_id, href, cfi, quote, quote_prefix, quote_suffix, nav_id, nav_progress, resource_progress) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(book_id) DO UPDATE SET href = excluded.href, cfi = excluded.cfi, quote = excluded.quote, quote_prefix = excluded.quote_prefix, quote_suffix = excluded.quote_suffix, nav_id = excluded.nav_id, nav_progress = excluded.nav_progress, resource_progress = excluded.resource_progress").run(bookId, location.href, location.cfi ?? null, location.quote ?? null, location.quotePrefix ?? null, location.quoteSuffix ?? null, location.navId ?? null, location.navProgress ?? null, location.resourceProgress ?? null);
   }
 
-  getPreferences(): { mode: ReaderMode; appearance: Appearance } {
+  getPreferences(): { mode: ReaderMode; pageLayout: "single" | "double"; appearance: Appearance } {
     const values = new Map((this.db.prepare("SELECT key, value FROM preferences").all() as Array<{ key: string; value: string }>).map(row => [row.key, row.value]));
     const number = (key: string, fallback: number): number => Number(values.get(key) ?? fallback);
     const storedColor = values.get("readerBackgroundColor");
     const backgroundColor = storedColor && /^#[0-9a-fA-F]{6}$/.test(storedColor) ? storedColor : undefined;
     const storedTheme = values.get("readerTheme");
     const theme = storedTheme === "custom" ? (backgroundColor ? "custom" : "system") : storedTheme === "light" || storedTheme === "dark" || storedTheme === "sepia" ? storedTheme : "system";
-    return { mode: values.get("readerMode") === "paginated" ? "paginated" : "continuous", appearance: { theme, ...(backgroundColor ? { backgroundColor } : {}), fontSize: number("fontSize", 18), margin: number("readerMargin", 48), lineHeight: number("lineHeight", 1.55), paragraphSpacing: number("paragraphSpacing", 0.75), fontFamily: values.get("fontFamily") ?? "Liberation Sans Reader" } };
+    return { mode: values.get("readerMode") === "paginated" ? "paginated" : "continuous", pageLayout: values.get("pageLayout") === "double" ? "double" : "single", appearance: { theme, ...(backgroundColor ? { backgroundColor } : {}), fontSize: number("fontSize", 18), margin: number("readerMargin", 48), lineHeight: number("lineHeight", 1.55), paragraphSpacing: number("paragraphSpacing", 0.75), fontFamily: values.get("fontFamily") ?? "Liberation Sans Reader" } };
   }
 
-  savePreferences(input: Partial<{ mode: ReaderMode; appearance: Appearance }>): void {
+  savePreferences(input: Partial<{ mode: ReaderMode; pageLayout: "single" | "double"; appearance: Appearance }>): void {
     const update = (key: string, value: string): void => { this.db.prepare("INSERT INTO preferences(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(key, value); };
     this.db.exec("BEGIN");
     try {
       if (input.mode) update("readerMode", input.mode);
+      if (input.pageLayout) update("pageLayout", input.pageLayout);
       if (input.appearance?.backgroundColor) update("readerBackgroundColor", input.appearance.backgroundColor);
       if (input.appearance) for (const [key, value] of Object.entries({ readerTheme: input.appearance.theme, fontSize: input.appearance.fontSize, readerMargin: input.appearance.margin, lineHeight: input.appearance.lineHeight, paragraphSpacing: input.appearance.paragraphSpacing, fontFamily: input.appearance.fontFamily })) update(key, String(value));
       this.db.exec("COMMIT");

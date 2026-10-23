@@ -161,6 +161,12 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
       // pending mode change to the next action. Keep that latency separately.
       await paint();
       const modeChangeMs = performance.now() - start;
+      const checkColumns = (double: boolean): void => {
+        const frame = host.querySelector("iframe")!;
+        const columnWidth = Number.parseFloat(frame.contentWindow!.getComputedStyle(frame.contentDocument!.body).columnWidth);
+        requireCheck(Number.isFinite(columnWidth) && (double ? columnWidth < host.clientWidth * 0.6 : columnWidth > host.clientWidth * 0.8), "wrong paginated column width");
+      };
+      checkColumns(false);
       stage = "next page";
       start = performance.now();
       await adapter.next();
@@ -168,6 +174,16 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
       const nextMs = performance.now() - start;
       stage = "previous page";
       await adapter.previous();
+      stage = "two-page spread";
+      await adapter.setPageLayout("double", appearance);
+      await paint();
+      checkColumns(host.clientWidth >= 800);
+      await adapter.next();
+      await adapter.previous();
+      stage = "single-page layout";
+      await adapter.setPageLayout("single", appearance);
+      await paint();
+      checkColumns(false);
       start = performance.now();
       stage = "dark appearance";
       await adapter.applyAppearance({ ...appearance, theme: "dark" });

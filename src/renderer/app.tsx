@@ -23,6 +23,7 @@ type Result<T> =
   { ok: true; value: T } | { ok: false; error: { code: string } };
 const defaults: Settings = {
   mode: "continuous",
+  pageLayout: "single",
   appearance: {
     theme: "system",
     fontSize: 18,

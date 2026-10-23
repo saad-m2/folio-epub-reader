@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { ReaderLocationSchema, RendererIntents, limits } from "../src/shared/contracts";
 
 describe("Epic 01 contracts", () => {
+  it("accepts only the supported page layouts while preserving partial settings updates", () => {
+    expect(RendererIntents.saveSettings.safeParse({ pageLayout: "single" }).success).toBe(true);
+    expect(RendererIntents.saveSettings.safeParse({ pageLayout: "double" }).success).toBe(true);
+    expect(RendererIntents.saveSettings.safeParse({ pageLayout: "auto" }).success).toBe(false);
+    expect(RendererIntents.saveSettings.safeParse({ mode: "continuous" }).success).toBe(true);
+  });
+
   it("keeps session-scoped intents narrow", () => {
     expect(RendererIntents.openSession.safeParse({ bookId: "not-a-uuid", path: "C:\\book.epub" }).success).toBe(false);
     expect(RendererIntents.closeSession.safeParse({ sessionId: crypto.randomUUID(), archiveBytes: new ArrayBuffer(1) }).success).toBe(false);

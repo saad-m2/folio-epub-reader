@@ -3,7 +3,7 @@ import Book from "epubjs/types/book";
 import Rendition from "epubjs/types/rendition";
 import type { NavItem } from "epubjs/types/navigation";
 import Section from "epubjs/types/section";
-import type { Appearance, ReaderLocation, ReaderMode } from "../shared/contracts";
+import type { Appearance, PageLayout, ReaderLocation, ReaderMode } from "../shared/contracts";
 import { withTimeout } from "./operation-timeout";
 import { appearanceColors } from "./appearance";
 import { captureQuoteAtOffset, resolveReplacementLocation, type ReplacementBook } from "./reader-location";
@@ -113,6 +113,7 @@ export class ReaderAdapter {
   private listeners = new Set<Listener>();
   private snapshot: ReaderSnapshot | undefined;
   private mode: ReaderMode = "continuous";
+  private pageLayout: PageLayout = "single";
   private currentAppearance: Appearance | undefined;
   private currentStylesheet = "";
   private layoutQueue: Promise<unknown> = Promise.resolve();
@@ -159,7 +160,7 @@ export class ReaderAdapter {
     for (const listener of this.selectionListeners) listener(undefined);
   }
 
-  async open(input: { archiveBytes: ArrayBuffer; mode: ReaderMode; appearance: Appearance; initialLocation?: ReaderLocation }): Promise<ReaderSnapshot> {
+  async open(input: { archiveBytes: ArrayBuffer; mode: ReaderMode; pageLayout?: PageLayout; appearance: Appearance; initialLocation?: ReaderLocation }): Promise<ReaderSnapshot> {
     await this.close();
     const operation = ++this.operation;
     this.archiveBytes = input.archiveBytes;
@@ -173,7 +174,7 @@ export class ReaderAdapter {
       // Some tolerated publications omit head. Vendor metadata hooks otherwise
       // throw errors whose console stack retains the entire chapter document.
       openedBook.spine.hooks?.content.list().unshift(ensurePublicationHead);
-      const renderOperation = await this.createRendition(input.mode, input.appearance);
+      const renderOperation = await this.createRendition(input.mode, input.appearance, input.pageLayout ?? "single");
       if (renderOperation !== this.operation) throw new Error("Reader operation superseded");
       await this.restore(input.initialLocation);
       return this.updateSnapshot();
@@ -189,15 +190,19 @@ export class ReaderAdapter {
     return this.queueLayout(async () => { await this.display(location.cfi ?? location.href); return this.updateSnapshot(); });
   }
 
-  async setMode(mode: ReaderMode, appearance: Appearance): Promise<ReaderSnapshot> {
+  async setMode(mode: ReaderMode, appearance: Appearance, pageLayout: PageLayout = this.pageLayout): Promise<ReaderSnapshot> {
     this.clearSelection();
     return this.queueLayout(async () => {
       const marker = this.captureLocation();
-      await this.createRendition(mode, appearance);
+      await this.createRendition(mode, appearance, pageLayout);
       const resolved = await this.resolveLocation(marker);
       await this.restore(resolved);
       return this.updateSnapshot();
     });
+  }
+
+  async setPageLayout(pageLayout: PageLayout, appearance: Appearance): Promise<ReaderSnapshot> {
+    return this.setMode(this.mode, appearance, pageLayout);
   }
 
   async applyAppearance(appearance: Appearance): Promise<ReaderSnapshot> {
@@ -395,13 +400,14 @@ export class ReaderAdapter {
     });
   }
 
-  private async createRendition(mode: ReaderMode, appearance: Appearance): Promise<number> {
+  private async createRendition(mode: ReaderMode, appearance: Appearance, pageLayout: PageLayout): Promise<number> {
     const operation = ++this.operation;
     this.clearSelection();
     this.cleanupFrames();
     this.destroyRendition();
     this.host.replaceChildren();
     this.mode = mode;
+    this.pageLayout = pageLayout;
     this.currentAppearance = appearance;
 
     const contentHooks = this.book!.spine.hooks?.content;
@@ -412,7 +418,7 @@ export class ReaderAdapter {
       allowScriptedContent: false,
       manager: mode === "continuous" ? "continuous" : "default",
       flow: mode === "continuous" ? "scrolled-doc" : "paginated",
-      spread: mode === "paginated" ? "always" : "none"
+      spread: mode === "paginated" && pageLayout === "double" ? "always" : "none"
     });
     this.renditionSpineHooks = (contentHooks?.list() ?? []).filter(hook => !previousHooks.has(hook));
 

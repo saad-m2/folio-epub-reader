@@ -176,6 +176,8 @@ Switching modes keeps the user at the same passage as closely as possible.
 - Book content is reflowed based on the current window and reading settings.
 - In continuous mode, the book uses conventional vertically scrolling reflowable EPUB content. Chapters may have appropriate visual separation, but they do not need to be represented as separately generated page surfaces.
 - In page-by-page mode, the book uses conventional EPUB pagination, such as column-based generated pages. A new chapter begins on a fresh generated page.
+- Page-by-page mode defaults to an undivided **Single page** layout. A separate **Two pages** choice displays a side-by-side spread on wide windows, falling back to one page on narrow windows. This global preference persists across books, mode changes, and restarts. Settings and the in-reader appearance panel show the layout choice when page-by-page mode is selected.
+- Switching page layouts keeps the same logical passage as closely as possible, like switching reading modes.
 - Changing the window size or reading appearance may change pagination and the amount of content visible in the continuous flow.
 - After a window-size or reading-appearance reflow, the reader returns to the start of the currently active navigable table-of-contents section when one is available. It does not promise to retain an exact page or offset through that reflow. If that navigation structure is unavailable, it returns within the same current spine resource.
 - Switching between continuous and page-by-page modes keeps the user at the same logical passage as closely as reasonably possible.
@@ -419,7 +421,7 @@ The initial discovery left the following details open. The implementation and ap
 - The current translation selection limit is 5,000 characters; any adjustment remains subject to usability and local-performance validation.
 - The approved Quiet bookshelf design is implemented. Future visual refinements should use the [design guide](../design/README.md).
 
-The separate Finished state remains undecided. Pending format expansion and single-page pagination are tracked in the roadmap and are not presented as shipped behavior. Product details must not be treated as permission to introduce unrelated architectural or technology choices into this document.
+The separate Finished state remains undecided. Pending format expansion is tracked in the roadmap. Product details must not be treated as permission to introduce unrelated architectural or technology choices into this document.
 
 ## 14. Product acceptance summary
 

@@ -9,6 +9,25 @@ async function temporaryPath(name: string): Promise<string> {
 }
 
 describe("persistent local library", () => {
+  it("defaults existing preferences to a single page and retains the spread choice across modes and restart", async () => {
+    const database = await temporaryPath("library.sqlite");
+    const repository = new LibraryRepository(database);
+    repository.savePreferences({ mode: "paginated" });
+    expect(repository.getPreferences().pageLayout).toBe("single");
+    repository.savePreferences({ pageLayout: "double" });
+    repository.savePreferences({ mode: "continuous" });
+    repository.close();
+    const restarted = new LibraryRepository(database);
+    expect(restarted.getPreferences()).toMatchObject({ mode: "continuous", pageLayout: "double" });
+    restarted.savePreferences({ mode: "paginated" });
+    expect(restarted.getPreferences().pageLayout).toBe("double");
+    restarted.savePreferences({ pageLayout: "single" });
+    restarted.close();
+    const reopened = new LibraryRepository(database);
+    expect(reopened.getPreferences()).toMatchObject({ mode: "paginated", pageLayout: "single" });
+    reopened.close();
+  });
+
   it("preserves custom page color across restart and preset switches", async () => {
     const database = await temporaryPath("library.sqlite");
     const repository = new LibraryRepository(database);

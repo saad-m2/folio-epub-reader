@@ -40,7 +40,7 @@ Normal application data lives at `%LOCALAPPDATA%/Windows EPUB Reader/Data`; Chro
 
 Locations include normalized href, optional CFI, bounded quote/context, navigation identity/progression, and resource progression. Restoration and replacement resolution use semantic fallbacks; generated page numbers and blob/frame identities are not durable positions. TOC progress follows navigational ranges and the deepest active entry, not an assumption that one spine resource is one chapter.
 
-Mode switching aims to retain the same logical passage. Appearance or window reflow follows the distinct rule of returning to the active section start, or current resource start without usable navigation. Paginated mode currently forces a spread; a separate single-page layout preference remains [pending](../product/ROADMAP.md).
+Mode and page-layout switching aim to retain the same logical passage through the semantic restoration flow. Appearance or window reflow follows the distinct rule of returning to the active section start, or current resource start without usable navigation. Paginated mode defaults to a single page (`spread: "none"`); the separate global `pageLayout` preference enables two-page spreads (`spread: "always"`), with epub.js falling back to one page below its 800px spread threshold. Continuous mode never uses spreads. Missing layout preferences default to single-page without a database migration.
 
 ## Optional services and delivery
 

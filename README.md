@@ -10,6 +10,10 @@ In version 0.2.1, **Settings → App updates** displays the installed version. C
 
 Windows installers are currently unsigned. Development builds and builds without a configured release repository show manual upgrade instructions.
 
+## Choose a page layout
+
+In **Settings → Reading appearance**, or the **Reading appearance** controls inside a book, select **Page by page**. It defaults to **Single page**, an undivided reading area with page turns. Choose **Two pages** under **Page layout** for a side-by-side spread on wide windows; narrow windows show one page. The layout is saved globally across books and restarts, including when you switch to Scroll and back. Changing layout keeps your logical reading passage as closely as possible.
+
 ## Choose a reading background
 
 Open **Settings → Reading appearance**, or the **Reading appearance** controls inside a book. Under **Page theme**, use the color wheel to choose a hue and saturation, adjust **Brightness**, and choose **Apply custom color**. The preview shows the selected background with automatically contrasting text. You can also enter an exact six-digit hex color such as `#dce8da`.

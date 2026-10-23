@@ -27,7 +27,7 @@ describe("in-app update controls", () => {
     document.body.append(container);
     root = createRoot(container);
     await act(async () => root.render(React.createElement(SettingsView, {
-      settings: { mode: "continuous", appearance: { theme: "light", fontSize: 18, margin: 48, lineHeight: 1.55, paragraphSpacing: 0.75, fontFamily: "Liberation Sans Reader" } },
+      settings: { mode: "continuous", pageLayout: "single", appearance: { theme: "light", fontSize: 18, margin: 48, lineHeight: 1.55, paragraphSpacing: 0.75, fontFamily: "Liberation Sans Reader" } },
       fonts: [], persist: vi.fn(), downloadFont: vi.fn(), fontNotice: "", headingRef: createRef<HTMLHeadingElement>(),
     })));
   });

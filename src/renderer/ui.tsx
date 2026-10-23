@@ -1,5 +1,5 @@
 import React, { forwardRef } from "react";
-import type { Appearance, LibraryBook, ReaderMode } from "../shared/contracts";
+import type { Appearance, LibraryBook, PageLayout, ReaderMode } from "../shared/contracts";
 import { ColorWheel } from "./color-wheel";
 import { defaultBackground } from "./appearance";
 
@@ -112,6 +112,22 @@ export function ModeSwitch({
         onClick={() => onChange("paginated")}
       >
         Page by page
+      </button>
+    </div>
+  );
+}
+
+export function PageLayoutSwitch({ layout, onChange }: {
+  layout: PageLayout;
+  onChange: (layout: PageLayout) => void;
+}): React.ReactElement {
+  return (
+    <div className="segmented" role="group" aria-label="Page layout">
+      <button type="button" aria-pressed={layout === "single"} onClick={() => onChange("single")}>
+        Single page
+      </button>
+      <button type="button" aria-pressed={layout === "double"} onClick={() => onChange("double")}>
+        Two pages
       </button>
     </div>
   );

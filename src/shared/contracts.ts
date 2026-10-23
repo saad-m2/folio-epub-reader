@@ -37,6 +37,8 @@ export const CoverSchema = z.object({ mime: z.enum(["image/jpeg", "image/png", "
 export const SelectionSchema = z.object({ sessionId: id, text: z.string().min(1).max(limits.maxIpcText), rangeCfi: z.string().max(4_000).optional(), rects: z.array(z.object({ x: z.number(), y: z.number(), width: z.number().nonnegative(), height: z.number().nonnegative() }).strict()).min(1).max(40) }).strict();
 export const TranslationRequestSchema = z.object({ sessionId: id, selectionId: id }).strict();
 export const ReaderModeSchema = z.enum(["continuous", "paginated"]);
+export const PageLayoutSchema = z.enum(["single", "double"]);
+export type PageLayout = z.infer<typeof PageLayoutSchema>;
 export const AppearanceSchema = z.object({
   theme: z.enum(["system", "light", "dark", "sepia", "custom"]),
   backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
@@ -48,7 +50,7 @@ export const AppearanceSchema = z.object({
 }).strict().refine(value => value.theme !== "custom" || value.backgroundColor !== undefined, { message: "Custom themes require a background color", path: ["backgroundColor"] });
 export type ReaderMode = z.infer<typeof ReaderModeSchema>;
 export type Appearance = z.infer<typeof AppearanceSchema>;
-export const SettingsSchema = z.object({ mode: ReaderModeSchema.optional(), appearance: AppearanceSchema.optional() }).strict();
+export const SettingsSchema = z.object({ mode: ReaderModeSchema.optional(), pageLayout: PageLayoutSchema.optional(), appearance: AppearanceSchema.optional() }).strict();
 export const LinkSchema = z.object({ sessionId: id, url: z.string().url().max(2_048).refine(url => new URL(url).protocol === "https:") }).strict();
 
 export const RendererIntents = {

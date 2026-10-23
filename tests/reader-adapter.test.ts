@@ -65,6 +65,38 @@ describe("ReaderAdapter", () => {
     await adapter.close();
   });
 
+  it("defaults pagination to one page and restores the passage when choosing a spread", async () => {
+    const mockBook = createMockBook();
+    Object.assign(mockBook, { getRange: vi.fn().mockResolvedValue({}) });
+    vi.doMock("epubjs", () => ({ default: vi.fn().mockReturnValue(mockBook) }));
+    const { ReaderAdapter } = await import("../src/renderer/reader-adapter");
+    const adapter = new ReaderAdapter(host);
+    const appearance = { theme: "light" as const, fontSize: 18, margin: 48, lineHeight: 1.55, paragraphSpacing: 0.75, fontFamily: "Georgia" };
+    await adapter.open({ archiveBytes: new ArrayBuffer(0), mode: "paginated", appearance });
+    expect(mockBook.renderTo).toHaveBeenLastCalledWith(host, expect.objectContaining({ flow: "paginated", spread: "none" }));
+    const marker = adapter.captureLocation();
+    const rendition = mockBook.renderTo.mock.results.at(-1)!.value;
+    await adapter.setPageLayout("double", appearance);
+    expect(mockBook.renderTo).toHaveBeenLastCalledWith(host, expect.objectContaining({ flow: "paginated", spread: "always" }));
+    expect(rendition.display).toHaveBeenLastCalledWith(marker.cfi);
+    await adapter.next();
+    await adapter.previous();
+    expect(rendition.next).toHaveBeenCalledOnce();
+    expect(rendition.prev).toHaveBeenCalledOnce();
+    await adapter.setMode("continuous", appearance);
+    expect(mockBook.renderTo).toHaveBeenLastCalledWith(host, expect.objectContaining({ flow: "scrolled-doc", spread: "none" }));
+    await adapter.setMode("paginated", appearance);
+    expect(mockBook.renderTo).toHaveBeenLastCalledWith(host, expect.objectContaining({ spread: "always" }));
+    await adapter.setPageLayout("single", appearance);
+    expect(rendition.display).toHaveBeenLastCalledWith(marker.cfi);
+    await adapter.reflow(appearance);
+    expect(rendition.display).toHaveBeenLastCalledWith("ch1.xhtml");
+    await adapter.close();
+    await adapter.open({ archiveBytes: new ArrayBuffer(0), mode: "paginated", pageLayout: "double", appearance });
+    expect(mockBook.renderTo).toHaveBeenLastCalledWith(host, expect.objectContaining({ spread: "always" }));
+    await adapter.close();
+  });
+
   it("normalizes a missing XHTML head and preserves an existing head", () => {
     const doc = new DOMParser().parseFromString('<html xmlns="http://www.w3.org/1999/xhtml"><body><p>Text</p></body></html>', 'application/xhtml+xml');
     ensurePublicationHead(doc);
