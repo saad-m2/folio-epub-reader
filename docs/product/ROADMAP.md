@@ -2,6 +2,12 @@
 
 Status reconciled on 2026-10-22 against current source and the [original reader-improvements note](../historical/planning/READER-IMPROVEMENTS-01.md). These are recorded requests, not a claim that every item is selected for the next release.
 
+## Optional cloud translation: requirements recorded
+
+The [cloud translation requirements](CLOUD-TRANSLATION-REQUIREMENTS.md) record the agreed extension: user-owned provider accounts, an active provider selectable in Settings, automatic cloud fallback after allowance exhaustion without user-managed ordering, and provider-enforced free cutoffs configured by users. Ollama remains a manually selected option with its existing Load/Unload behavior and is excluded from automatic fallback.
+
+Planning only; no cloud implementation or runtime qualification has been performed. The initial provider list, language scope, internal fallback selection, saved-provider behavior after fallback, and handling of non-exhaustion errors remain to be settled. See the requirements for candidates and security boundaries.
+
 ## Additional formats: scope needed
 
 Import and publication opening currently support EPUB only. The user requested more formats but has not selected the actual formats or their order. PDF, TXT, FB2, MOBI, and AZW3 were discussion examples, not an approved support list.
