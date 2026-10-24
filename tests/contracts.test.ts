@@ -27,4 +27,14 @@ describe("Epic 01 contracts", () => {
     expect(RendererIntents.openExternalLink.safeParse({ sessionId: crypto.randomUUID(), url: "file:///secret" }).success).toBe(false);
     expect(RendererIntents.openExternalLink.safeParse({ sessionId: crypto.randomUUID(), url: "https://example.invalid/reader-smoke" }).success).toBe(true);
   });
+
+  it("rejects oversized selection rectangles before validating their contents", () => {
+    let inspected = 0;
+    const rect = { get x() { inspected++; return 0; }, y: 0, width: 1, height: 1 };
+    const result = RendererIntents.registerTranslationSelection.safeParse({
+      sessionId: crypto.randomUUID(), text: "Selection", rects: Array(41).fill(rect),
+    });
+    expect(result.success).toBe(false);
+    expect(inspected).toBe(0);
+  });
 });

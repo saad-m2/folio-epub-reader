@@ -4,9 +4,9 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.2.2
+## Install version 0.2.3
 
-Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.1; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
+Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.2; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
 The installer is unsigned. A local build is not a published GitHub release.
 
@@ -38,6 +38,12 @@ The repository must be public and have published, non-prerelease GitHub Releases
 Release access and a published newer version are required to qualify the real hosted download/restart flow. Local controller tests cannot establish that the release service is working. Do not describe it as verified until that two-version installed test has run.
 
 A locally verified release can also be published with `gh release create vVERSION --target TESTED_COMMIT` and the exact installer, `RELEASES`, full NuGet package, and supply-chain reports from `pnpm package:release`. Upload all files before publishing the release as latest. License reports use repository-relative paths so published evidence does not expose the build user's home directory.
+
+## 0.2.3 verification
+
+On 2026-10-24, type checking, all 163 unit/regression tests, and `pnpm package:release` passed on Windows x64. The release build produced the 0.2.3 installer and Squirrel update package, passed license and packaged-dependency checks, and passed all 12 packaged runtime fixtures with an isolated profile. The completed dependency audit reported zero advisories after updating Zod to 4.6.6 and pinning patched Undici and fast-uri versions. A regression test verifies that oversized selection rectangle arrays are rejected before their contents are validated.
+
+The background color wheel now preserves its spectrum when the shared button hover style applies. In the packaged app with an isolated profile, hover, dragging, pointer and keyboard selection, visible keyboard focus, applying a color, and settings persistence passed. Reintroducing the previous hover rule reproduced the missing spectrum. The real older-installed-version hosted download/restart flow, Narrator, and physical-DPI qualification remain unrun for this release.
 
 ## 0.2.2 verification
 

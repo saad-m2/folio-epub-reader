@@ -232,7 +232,9 @@ select {
   gap: 24px;
   padding: 8px 4px;
 }
-.color-wheel {
+/* Preserve the spectrum when the shared button:hover background applies. */
+.color-wheel,
+.color-wheel:hover {
   position: relative;
   flex: 0 0 164px;
   width: 164px;
