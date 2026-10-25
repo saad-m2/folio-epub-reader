@@ -1,6 +1,6 @@
 # Documentation policy
 
-Keep enough durable context for the next task without requiring a full repository read. This policy applies to future work on Leaf.
+Keep enough durable context for the next task without requiring a full repository read. This policy applies alongside the [agent guidelines](AGENT-GUIDELINES.md) during all work on Leaf.
 
 ## During each task
 
@@ -11,7 +11,7 @@ Keep enough durable context for the next task without requiring a full repositor
 
 ## Where and how to write
 
-- Update the existing topic guide first; keep one maintained explanation of each subject. Use the [map](../README.md) to choose product, architecture, design, development, or release folders.
+- Update the existing topic guide first; keep one maintained explanation of each subject. Use the [map](../README.md) to choose product, architecture, design, workflow, or release folders.
 - Create a new document only for a distinct subject that needs lasting explanation. Use a clear descriptive filename, relative links, and a short opening statement of purpose. Link it from the relevant guide or map so it is discoverable.
 - Record consequential architecture decisions in `docs/architecture/decisions/`: date/status, problem, chosen approach, reason/tradeoffs, and affected code. Routine implementation choices do not need a decision record.
 - Prefer concise explanations of behavior, constraints, and why a choice matters. Link to code/configuration for exact APIs, versions, and commands rather than copying lists that will drift. Date evidence and review snapshots; do not imply an old result verifies a new build.

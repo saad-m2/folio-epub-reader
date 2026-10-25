@@ -26,18 +26,9 @@ An empty value leaves online updates unconfigured and displays manual upgrade in
 
 The repository must be public and have published, non-prerelease GitHub Releases. No access token is shipped in the app. A private repository needs a different update service. See [Electron's update service documentation](https://www.electronjs.org/docs/latest/tutorial/updates#using-updateelectronjsorg).
 
-## Publish the next version
+## Developer release procedure
 
-1. Set the real `updateRepository` before building the installer that should receive updates. Keep it consistent in subsequent releases.
-2. Increase `package.json` version (for example, 0.2.0 → 0.2.1). Keep the Forge package/executable/Squirrel names and data directory unchanged.
-3. Run `pnpm check`, `pnpm test`, and `pnpm package:release` on Windows.
-4. Tag that tested commit with the matching version, for example `v0.2.1`, and push it to the configured GitHub repository when ready to publish.
-5. The existing CI workflow builds and verifies the installer, then creates a **draft** release containing `WindowsEpubReaderSetup.exe`, `RELEASES`, the `*-full.nupkg` package, and supply-chain evidence. Review and publish that draft as a normal release. All three Squirrel files are required; Setup.exe alone cannot serve the updater.
-6. From 0.2.0, use Settings → About → Check for updates, then Restart and install. From 0.2.1 onward, use Settings → App updates. Confirm the new version and preserved library/settings.
-
-Release access and a published newer version are required to qualify the real hosted download/restart flow. Local controller tests cannot establish that the release service is working. Do not describe it as verified until that two-version installed test has run.
-
-A locally verified release can also be published with `gh release create vVERSION --target TESTED_COMMIT` and the exact installer, `RELEASES`, full NuGet package, and supply-chain reports from `pnpm package:release`. Upload all files before publishing the release as latest. License reports use repository-relative paths so published evidence does not expose the build user's home directory.
+For integration, versioning, packaging, publication, and installed-update verification, follow the [release workflow](../workflow/RELEASE-WORKFLOW.md).
 
 ## 0.3.0 changes and qualification
 

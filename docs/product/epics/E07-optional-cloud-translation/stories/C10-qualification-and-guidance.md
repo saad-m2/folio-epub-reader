@@ -20,4 +20,4 @@ AWS was removed from scope on 2026-10-25. Its diagnostic evidence remains histor
 
 ## Verification and evidence
 
-Follow the [development guide](../../../../development/README.md), [qualification scope](../../../../release/QUALIFICATION.md), and [documentation policy](../../../../development/DOCUMENTATION-POLICY.md). Save sanitized runtime evidence in the designated ignored locations. Validate documentation links and review the final diff. Packaging/distribution checks are selected according to the actual release scope, not inferred from a successful development build.
+Follow the [development guide](../../../../workflow/AGENT-GUIDELINES.md#setup-and-commands), [qualification scope](../../../../release/QUALIFICATION.md), and [documentation policy](../../../../workflow/DOCUMENTATION-POLICY.md). Save sanitized runtime evidence in the designated ignored locations. Validate documentation links and review the final diff. Packaging/distribution checks are selected according to the actual release scope, not inferred from a successful development build.

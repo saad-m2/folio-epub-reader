@@ -56,7 +56,7 @@ Integrate through [main IPC](../../../src/main/index.ts), [Settings](../../../sr
 - Unit/contract/security regressions cover routing, cancellation, credential boundaries, exhausted-state persistence, provider switching, resets, and non-exhaustion failures.
 - Relevant Electron proof/corpus and UI/keyboard checks pass in isolated profiles. Existing local Load/Unload, explicit Translate, offline reading, and local translation regressions pass.
 - Real-provider German-to-English checks cover words, sentences, and several paragraphs. Simulated quota/error cases are identified as simulations; do not consume allowances just to manufacture exhaustion.
-- Product definition, architecture decision, setup instructions, UI copy, roadmap, and qualification status accurately describe the delivered behavior and evidence. Follow the [development guide](../../development/README.md) and [documentation policy](../../development/DOCUMENTATION-POLICY.md).
+- Product definition, architecture decision, setup instructions, UI copy, roadmap, and qualification status accurately describe the delivered behavior and evidence. Follow the [development guide](../../workflow/AGENT-GUIDELINES.md#setup-and-commands) and [documentation policy](../../workflow/DOCUMENTATION-POLICY.md).
 
 ## Development evidence and remaining qualification
 
