@@ -20,6 +20,12 @@ interface Window {
     getTranslationModelStatus(): Promise<unknown>;
     loadTranslationModel(): Promise<unknown>;
     unloadTranslationModel(): Promise<unknown>;
+    getTranslationProviders(): Promise<unknown>;
+    saveTranslationProvider(configuration: unknown): Promise<unknown>;
+    removeTranslationProvider(provider: string): Promise<unknown>;
+    setTranslationProvider(provider: string): Promise<unknown>;
+    checkTranslationProviderAvailability(provider: string): Promise<unknown>;
+    getTranslationRequestStatus(selection: unknown): Promise<unknown>;
     downloadFont(fontId: string): Promise<unknown>;
     listFonts(): Promise<unknown>;
     getFontData(fontId: string): Promise<unknown>;

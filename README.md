@@ -1,6 +1,6 @@
 # Leaf — Windows EPUB Reader
 
-A desktop EPUB reader for Windows x64, with a visual library, saved reading positions, continuous and paginated reading, reading themes, and optional local German-to-English translation through Ollama.
+A desktop EPUB reader for Windows x64, with a visual library, saved reading positions, continuous and paginated reading, reading themes, and optional German-to-English translation through local Ollama or user-owned cloud accounts.
 
 ## Install and update
 
@@ -39,6 +39,10 @@ pnpm package:release
 
 `package:release` builds and verifies the Squirrel installer, runs the packaged EPUB runtime tests, and produces dependency/license evidence. Installer output is in `out/make/squirrel.windows/x64/`.
 
-Translation is optional. Start Ollama and install `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M`, then explicitly load the model in Settings → Local translation. Select a German passage in a book and choose Translate.
+Translation is optional. For local translation, start Ollama and install `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M`, select local Ollama in **Reader settings / Translation** while reading, then explicitly load the model. Select a German passage in a book and choose Translate.
+
+The E07 development implementation also supports your own Microsoft Translator and DeepL accounts, with exhaustion-only fallback that saves and keeps the new current provider. See [cloud setup and privacy](docs/product/CLOUD-TRANSLATION-SETUP.md) and [delivery/qualification status](docs/product/epics/E07-optional-cloud-translation.md). This does not claim the feature is present in a published installer or qualified against real provider accounts.
+
+The in-book **Reader settings** panel combines appearance controls, translation-service selection, status, and local Load/Unload. Cloud account credentials remain in the main **Settings / Translation** screen. Amazon Translate was removed from scope on 2026-10-25; migration on the first translation-provider state read deletes its saved app-owned credentials and allowance metadata. If it was selected, choose a supported provider explicitly.
 
 Start with the [documentation map](docs/README.md) for task-specific guides, the [product definition](docs/product/PRODUCT.md), and the [roadmap](docs/product/ROADMAP.md). See [release and update instructions](docs/release/UPDATES.md) for distribution and the [design guide](docs/design/README.md) for UI work. Agent sessions start with [AGENTS.md](AGENTS.md).

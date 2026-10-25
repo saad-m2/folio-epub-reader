@@ -438,3 +438,20 @@
     border: 1px solid CanvasText;
   }
 }
+.reader-cloud-status { display: block; margin-top: 12px; font-size: 12px; overflow-wrap: anywhere; }
+.reader-tools { flex-wrap: wrap; max-width: 100%; }
+.reader-provider-picker {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid #76816c60;
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.reader-provider-picker:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.reader-translation-settings { border-top: 1px solid #76816c60; margin-top: 22px; padding-top: 18px; }
+.reader-translation-settings .model-status { display: block; margin: 12px 0 8px; }
+.reader-translation-settings p { line-height: 1.55; }

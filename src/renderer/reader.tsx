@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Text } from "@fluentui/react-components";
 import { Button, Icon, ModeSwitch, PageLayoutSwitch, AppearanceControls } from "./ui";
 import { appearanceColors } from "./appearance";
+import { PROVIDER_LABELS, type TranslationProvider, type TranslationProvidersView, type TranslationProgress, type TranslationResult } from "../shared/translation";
+import { cloudTranslationMessage } from "./translation-ui";
 import type { FontEntry } from "./settings";
 import type {
   Appearance,
@@ -42,6 +44,7 @@ type TranslationSurface = {
   selectionId: string;
   expanded: boolean;
   retry: boolean;
+  provider: TranslationProvider | null;
 };
 const modelLabels: Record<ModelState, string> = {
   unavailable: "Ollama is not running",
@@ -53,6 +56,7 @@ const modelLabels: Record<ModelState, string> = {
   error: "Translation model needs attention",
 };
 function translationMessage(code: string): string {
+  if (code.startsWith("CLOUD_")) return cloudTranslationMessage(code);
   switch (code) {
     case "SERVICE_UNAVAILABLE":
       return "Ollama is unavailable. Install and start Ollama, then check again.";
@@ -83,6 +87,11 @@ const retryableTranslationError = (code: string): boolean =>
     "MODEL_INVALID_OUTPUT",
     "MODEL_INTERRUPTED",
     "MODEL_SERVICE_ERROR",
+    "CLOUD_TIMEOUT",
+    "CLOUD_NETWORK",
+    "CLOUD_RATE_LIMITED",
+    "CLOUD_INVALID_OUTPUT",
+    "CLOUD_SERVICE_ERROR",
   ].includes(code);
 function Toc({
   items,
@@ -142,7 +151,18 @@ export function Reader({
   });
   const [modelBusy, setModelBusy] = useState(false);
   const busyModel = useRef(false);
+  const modelRevision = useRef(0);
+  const modelRead = useRef(0);
   const [modelNotice, setModelNotice] = useState("");
+  const [providers, setProviders] = useState<TranslationProvidersView>();
+  const [providerBusy, setProviderBusy] = useState(false);
+  const [providerNotice, setProviderNotice] = useState("");
+  const providerSwitch = useRef(false);
+  const providerRevision = useRef(0);
+  const providerRead = useRef(0);
+  const providerPicker = useRef<HTMLSelectElement>(null);
+  const restoreProviderFocus = useRef(false);
+  const readerMounted = useRef(false);
   const [selected, setSelected] = useState<{
     selection: ReaderSelection;
     selectionId: string;
@@ -178,28 +198,120 @@ export function Reader({
   };
   const refreshModelStatus = useCallback(async (): Promise<void> => {
     if (busyModel.current) return;
+    const revision = modelRevision.current;
+    const read = ++modelRead.current;
     try {
       const result =
         (await window.readerApi.getTranslationModelStatus()) as Result<ModelStatus>;
+      if (!readerMounted.current || busyModel.current || revision !== modelRevision.current || read !== modelRead.current) return;
       if (result.ok) setModelStatus(result.value);
       else setModelStatus({ state: "error", reason: result.error.code });
     } catch {
-      setModelStatus({ state: "error" });
+      if (readerMounted.current && !busyModel.current && revision === modelRevision.current && read === modelRead.current) setModelStatus({ state: "error" });
     }
   }, []);
+  const refreshProviders = useCallback(async (): Promise<TranslationProvidersView | undefined> => {
+    if (providerSwitch.current) return undefined;
+    const revision = providerRevision.current;
+    const read = ++providerRead.current;
+    try {
+      const result = await window.readerApi.getTranslationProviders() as Result<TranslationProvidersView>;
+      if (revision !== providerRevision.current || providerSwitch.current) return undefined;
+      if (result.ok) {
+        if (readerMounted.current && read === providerRead.current) setProviders(result.value);
+        return result.value;
+      }
+    } catch { /* Reading remains available if provider configuration cannot be read. */ }
+    return undefined;
+  }, []);
+  async function changeProvider(provider: TranslationProvider): Promise<void> {
+    if (providerSwitch.current || provider === providers?.current) return;
+    restoreProviderFocus.current = document.activeElement === providerPicker.current;
+    providerSwitch.current = true;
+    ++modelRevision.current;
+    ++providerRevision.current;
+    ++selectionVersion.current;
+    ++translationVersion.current;
+    currentSelection.current = undefined;
+    setSelected(undefined);
+    showTranslation(undefined);
+    adapter.current?.clearSelection();
+    setProviderBusy(true);
+    setProviderNotice("");
+    setModelNotice("");
+    setError("");
+    setToolbarVisible(true);
+    // Drain any earlier selection registration before main switches and clears it.
+    // New selections are ignored while this operation is pending.
+    const operation = selectionRegistration.current.catch(() => undefined)
+      .then(() => window.readerApi.setTranslationProvider(provider));
+    selectionRegistration.current = operation;
+    try {
+      const result = await operation as Result<TranslationProvidersView>;
+      if (!readerMounted.current) return;
+      if (result.ok) {
+        setProviders(result.value);
+        setProviderNotice(`${PROVIDER_LABELS[provider]} selected. Select text and press Translate when ready.`);
+      } else setError(cloudTranslationMessage(result.error.code));
+    } catch {
+      if (readerMounted.current) setError("Could not change translation service. Try again.");
+    } finally {
+      ++providerRevision.current;
+      adapter.current?.clearSelection();
+      providerSwitch.current = false;
+      if (readerMounted.current) setProviderBusy(false);
+    }
+  }
   useEffect(() => {
+    if (!providerBusy && restoreProviderFocus.current) {
+      restoreProviderFocus.current = false;
+      providerPicker.current?.focus();
+    }
+  }, [providerBusy]);
+  useEffect(() => {
+    readerMounted.current = true;
+    void refreshProviders();
+    const timer = window.setInterval(() => void refreshProviders(), 10000);
+    return () => { readerMounted.current = false; window.clearInterval(timer); };
+  }, [refreshProviders]);
+  useEffect(() => {
+    if (providers?.current !== "ollama") return;
     void refreshModelStatus();
     const timer = window.setInterval(() => {
       void refreshModelStatus();
     }, 10000);
     return () => window.clearInterval(timer);
-  }, [refreshModelStatus]);
+  }, [providers?.current, refreshModelStatus]);
+  useEffect(() => {
+    if (translation?.phase !== "loading") return;
+    let active = true;
+    let checking = false;
+    const version = translationVersion.current;
+    const selectionId = translation.selectionId;
+    const poll = async (): Promise<void> => {
+      if (checking) return;
+      checking = true;
+      try {
+        const result = await window.readerApi.getTranslationRequestStatus({ sessionId: session.sessionId, selectionId }) as Result<TranslationProgress>;
+        const surface = currentTranslation.current;
+        if (!active || version !== translationVersion.current || !result.ok || surface?.phase !== "loading") return;
+        const provider = result.value.provider;
+        if (provider && (result.value.phase === "translating" || result.value.phase === "fallback")) {
+          showTranslation({ ...surface, provider, message: result.value.phase === "fallback" ? `Allowance exhausted. Trying ${PROVIDER_LABELS[provider]}…` : `Translating with ${PROVIDER_LABELS[provider]}…` });
+        }
+      } catch { /* Progress polling never retries or submits a translation. */ }
+      finally { checking = false; }
+    };
+    const timer = window.setInterval(() => void poll(), 400);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [translation?.phase, translation?.selectionId, session.sessionId]);
   async function changeModel(action: "load" | "unload"): Promise<void> {
-    if (busyModel.current) return;
+    if (busyModel.current || providerSwitch.current || providers?.current !== "ollama") return;
     adapter.current?.clearSelection();
     setSelected(undefined);
     dismissTranslation();
     busyModel.current = true;
+    ++modelRevision.current;
     setModelBusy(true);
     setModelNotice("");
     setModelStatus({ state: action === "load" ? "loading" : "unloading" });
@@ -227,6 +339,7 @@ export function Reader({
     selection: ReaderSelection;
     selectionId: string;
   }): Promise<void> {
+    if (providerSwitch.current) return;
     const active = intent ?? currentSelection.current;
     if (
       !active ||
@@ -235,65 +348,85 @@ export function Reader({
     )
       return;
     const version = ++translationVersion.current;
-    const surface: TranslationSurface = {
+    let surface: TranslationSurface = {
       phase: "loading",
       message: "Translating German to English…",
       selection: active.selection,
       selectionId: active.selectionId,
       expanded: false,
       retry: false,
+      provider: providers?.current ?? null,
+    };
+    const stillCurrent = (): boolean => version === translationVersion.current &&
+      currentSelection.current?.selectionId === active.selectionId &&
+      adapter.current?.getSelection()?.text === active.selection.text;
+    const failureProvider = async (): Promise<TranslationProvider | null> => {
+      const pending = currentTranslation.current;
+      const lastProvider = pending?.selectionId === active.selectionId ? pending.provider : surface.provider;
+      if (surface.provider === "ollama") return "ollama";
+      try {
+        const status = await window.readerApi.getTranslationRequestStatus({ sessionId: session.sessionId, selectionId: active.selectionId }) as Result<TranslationProgress>;
+        if (status.ok && status.value.provider) return status.value.provider;
+      } catch { /* Keep the last observed provider if request status is unavailable. */ }
+      return lastProvider;
     };
     showTranslation(surface);
     setSelected(undefined);
     try {
-      const status =
-        (await window.readerApi.getTranslationModelStatus()) as Result<ModelStatus>;
-      if (
-        version !== translationVersion.current ||
-        currentSelection.current?.selectionId !== active.selectionId
-      )
+      const configured = await refreshProviders();
+      if (version !== translationVersion.current) return;
+      if (!configured?.current) {
+        showTranslation({ ...surface, phase: "error", message: cloudTranslationMessage("CLOUD_NOT_CONFIGURED") });
         return;
-      if (!status.ok || status.value.state !== "loaded") {
-        if (status.ok) setModelStatus(status.value);
-        if (
-          status.ok &&
-          (status.value.state === "loading" ||
-            status.value.state === "unloading")
-        ) {
+      }
+      surface = { ...surface, provider: configured.current };
+      showTranslation(surface);
+      if (configured.current === "ollama") {
+        const status =
+          (await window.readerApi.getTranslationModelStatus()) as Result<ModelStatus>;
+        if (!stillCurrent()) return;
+        if (!status.ok || status.value.state !== "loaded") {
+          if (status.ok) setModelStatus(status.value);
+          if (
+            status.ok &&
+            (status.value.state === "loading" ||
+              status.value.state === "unloading")
+          ) {
+            showTranslation({
+              ...surface,
+              phase: "error",
+              message:
+                status.value.state === "loading"
+                  ? "The translation model is still loading. Wait for it to finish, then select your passage and choose Translate again."
+                  : "The translation model is unloading. Load it again before requesting a translation.",
+              retry: false,
+            });
+            return;
+          }
+          const code = !status.ok
+            ? status.error.code
+            : status.value.state === "unavailable"
+              ? "SERVICE_UNAVAILABLE"
+              : status.value.state === "missing"
+                ? "MODEL_MISSING"
+                : status.value.state === "error"
+                  ? status.value.reason === "timeout"
+                    ? "MODEL_TIMEOUT"
+                    : "MODEL_SERVICE_ERROR"
+                  : "MODEL_UNLOADED";
           showTranslation({
             ...surface,
             phase: "error",
-            message:
-              status.value.state === "loading"
-                ? "The translation model is still loading. Wait for it to finish, then select your passage and choose Translate again."
-                : "The translation model is unloading. Load it again before requesting a translation.",
-            retry: false,
+            message: translationMessage(code),
+            retry: retryableTranslationError(code),
           });
           return;
         }
-        const code = !status.ok
-          ? status.error.code
-          : status.value.state === "unavailable"
-            ? "SERVICE_UNAVAILABLE"
-            : status.value.state === "missing"
-              ? "MODEL_MISSING"
-              : status.value.state === "error"
-                ? status.value.reason === "timeout"
-                  ? "MODEL_TIMEOUT"
-                  : "MODEL_SERVICE_ERROR"
-                : "MODEL_UNLOADED";
-        showTranslation({
-          ...surface,
-          phase: "error",
-          message: translationMessage(code),
-          retry: retryableTranslationError(code),
-        });
-        return;
       }
       const result = (await window.readerApi.translateSelection({
         sessionId: session.sessionId,
         selectionId: active.selectionId,
-      })) as Result<{ text: string }>;
+      })) as Result<TranslationResult>;
       if (
         version !== translationVersion.current ||
         currentSelection.current?.selectionId !== active.selectionId ||
@@ -306,25 +439,34 @@ export function Reader({
           phase: "result",
           message: result.value.text,
           retry: false,
+          provider: result.value.provider,
         });
       else {
+        const provider = await failureProvider();
+        if (!stillCurrent()) return;
         showTranslation({
           ...surface,
+          provider,
           phase: "error",
           message: translationMessage(result.error.code),
           retry: retryableTranslationError(result.error.code),
         });
-        void refreshModelStatus();
+        if (configured.current === "ollama") void refreshModelStatus();
       }
     } catch {
-      if (version === translationVersion.current)
+      if (!stillCurrent()) return;
+      const provider = await failureProvider();
+      if (stillCurrent())
         showTranslation({
           ...surface,
+          provider,
           phase: "error",
           message:
-            "The local translation service could not be reached. Check Ollama and try again.",
+            surface.provider === "ollama" ? "The local translation service could not be reached. Check Ollama and try again." : cloudTranslationMessage("CLOUD_NETWORK"),
           retry: true,
         });
+    } finally {
+      if (readerMounted.current) void refreshProviders();
     }
   }
   async function copyTranslation(): Promise<void> {
@@ -460,6 +602,7 @@ export function Reader({
       setError("Select 5,000 characters or fewer to translate."),
     );
     const stopSelection = reader.subscribeSelection((selection) => {
+      if (providerSwitch.current) return;
       if (selection) setError("");
       const prior = currentSelection.current;
       if (
@@ -734,6 +877,8 @@ export function Reader({
     !!translation &&
     translation.phase === "result" &&
     (translation.message.length > 300 || hostHeight < 450);
+  const currentCloud = providers?.providers.find(item => item.provider === providers.current);
+  const cloudReadiness = currentCloud?.credentialError ? "Credentials need attention" : !currentCloud?.configured ? "Not configured" : currentCloud.availability === "exhausted" ? "Allowance exhausted" : currentCloud.availability === "available" ? "Ready" : "Allowance not confirmed";
   const bubbleStyle: React.CSSProperties | undefined = anchor
     ? {
         left: Math.max(12, Math.min(hostWidth - 300, anchor.x)),
@@ -781,7 +926,7 @@ export function Reader({
         onPointerEnter={() => setToolbarVisible(true)}
         onPointerLeave={() => {
           if (
-            !overlayOpen &&
+            !providerSwitch.current && !overlayOpen &&
             !toolbar.current?.contains(document.activeElement)
           )
             setToolbarVisible(false);
@@ -830,51 +975,20 @@ export function Reader({
         </fieldset>
         <div className="reader-tools">
           <span className="divider" />
-          <span className="sr-only model-status" role="status">
-            {modelLabels[modelStatus.state]}
-          </span>
-          <Button
-            appearance="subtle"
-            title={modelLabels[modelStatus.state]}
-            aria-label={
-              modelStatus.state === "loaded"
-                ? "Unload translation model"
-                : "Load translation model"
-            }
-            disabled={
-              modelBusy ||
-              modelStatus.state === "loading" ||
-              modelStatus.state === "unloading"
-            }
-            onClick={() =>
-              void changeModel(
-                modelStatus.state === "loaded" ? "unload" : "load",
-              )
-            }
-          >
-            <span
-              className={`dot ${modelStatus.state === "loaded" ? "" : "inactive"}`}
-            />
-            {modelBusy
-              ? "Please wait…"
-              : modelStatus.state === "loaded"
-                ? "Unload model"
-                : "Load model"}
-          </Button>
           <Button
             appearance="subtle"
             className="icon-btn"
             ref={appearanceButton}
-            aria-label="Appearance"
-            title="Reading appearance"
+            aria-label="Reader settings"
+            title="Reader settings"
             aria-expanded={appearanceOpen}
-            aria-controls="reader-appearance"
+            aria-controls="reader-settings"
             onClick={() => {
               setToc(false);
               setAppearanceOpen((value) => !value);
             }}
           >
-            <Icon name="type" />
+            <Icon name="settings" />
           </Button>
           <Button
             appearance="subtle"
@@ -936,24 +1050,25 @@ export function Reader({
       )}
       {appearanceOpen && (
         <aside
-          id="reader-appearance"
+          id="reader-settings"
           ref={overlay}
           className="reader-overlay appearance-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Appearance settings"
+          aria-label="Reader settings"
         >
           <div className="drawer-title">
-            <h2>Make it your page</h2>
+            <h2>Reader settings</h2>
             <Button
               appearance="subtle"
               className="icon-btn"
-              aria-label="Close appearance"
+              aria-label="Close reader settings"
               onClick={() => closeOverlay()}
             >
               <Icon name="close" />
             </Button>
           </div>
+          <h3>Reading appearance</h3>
           <fieldset className="appearance-fields" disabled={preferencesBusy}>
             <legend className="sr-only">Global reading preferences</legend>
             <div className="form-row">
@@ -986,6 +1101,70 @@ export function Reader({
             <Icon name="check" />
             <span>Saved for all your books.</span>
           </div>
+          <section className="reader-translation-settings" aria-labelledby="reader-translation-title">
+            <h3 id="reader-translation-title">Translation</h3>
+            <p className="small muted">Choose a service for German to English. Connecting accounts is available in the main Settings.</p>
+            <select
+              ref={providerPicker}
+              className="reader-provider-picker"
+              aria-label="Translation service"
+              title="Translation service"
+              value={providers?.current ?? ""}
+              disabled={!providers || providerBusy || modelBusy}
+              aria-busy={providerBusy}
+              onChange={event => void changeProvider(event.target.value as TranslationProvider)}
+              onKeyDown={event => {
+                // Let the native picker close without Escape leaving the book.
+                if (event.key === "Escape") event.stopPropagation();
+              }}
+            >
+              <option value="" disabled>{providers ? "Choose translation service" : "Loading services…"}</option>
+              <option value="ollama">{PROVIDER_LABELS.ollama}</option>
+              {providers?.providers.filter(account => account.configured).map(account => (
+                <option key={account.provider} value={account.provider} disabled={account.credentialError}>
+                  {PROVIDER_LABELS[account.provider]}{account.credentialError ? " (reconnect in Settings)" : account.availability === "exhausted" ? " (exhausted)" : ""}
+                </option>
+              ))}
+            </select>
+            <p className="small muted" role="status">{providerBusy ? "Changing translation service…" : providerNotice}</p>
+            {providers?.current === "ollama" ? <>
+              <span className="small model-status" role="status">
+                {modelLabels[modelStatus.state]}
+              </span>
+              <Button
+                appearance="subtle"
+                title={modelLabels[modelStatus.state]}
+                aria-label={
+                  modelStatus.state === "loaded"
+                    ? "Unload translation model"
+                    : "Load translation model"
+                }
+                disabled={
+                  modelBusy || providerBusy ||
+                  modelStatus.state === "loading" ||
+                  modelStatus.state === "unloading"
+                }
+                onClick={() =>
+                  void changeModel(
+                    modelStatus.state === "loaded" ? "unload" : "load",
+                  )
+                }
+              >
+                <span
+                  className={`dot ${modelStatus.state === "loaded" ? "" : "inactive"}`}
+                />
+                {modelBusy
+                  ? "Please wait…"
+                  : modelStatus.state === "loaded"
+                    ? "Unload model"
+                    : "Load model"}
+              </Button>
+            </> : <span className="reader-cloud-status" role="status">
+              {providers?.current ? cloudReadiness : providers ? "Choose a translation service" : "Checking translation provider…"}
+            </span>}
+            {modelNotice && <p className="small" role="status">{modelNotice}</p>}
+            <p className="small muted">Switching never translates a selection or loads a local model. Cloud fallback stays on the next service until you switch again or its allowance runs out.</p>
+          </section>
         </aside>
       )}
       <div className="reader-host" ref={host} />
@@ -1093,7 +1272,7 @@ export function Reader({
           </Button>
           <div className="bubble-status">
             <span className="dot" />
-            On-device translation
+            {translation.provider === "ollama" ? "On-device translation" : translation.provider ? PROVIDER_LABELS[translation.provider] : "Translation provider unavailable"}
           </div>
         </div>
       )}
@@ -1111,6 +1290,7 @@ export function Reader({
             onClick={(event) => event.stopPropagation()}
           >
             <h2>German to English</h2>
+            <p className="small muted">{translation.provider === "ollama" ? "On-device translation" : translation.provider ? PROVIDER_LABELS[translation.provider] : "Translation provider unavailable"}</p>
             <div className="translation-full-text">{translation.message}</div>
             <div className="translation-actions">
               <Button onClick={() => void copyTranslation()}>Copy</Button>
@@ -1124,10 +1304,10 @@ export function Reader({
           ? `${snapshot.label}, ${Math.round(snapshot.progress * 100)} percent`
           : "Opening book"}
       </Text>
-      {(error || modelNotice) && (
+      {error && (
         <div className="reader-error" role="alert">
           <Icon name="warning" />
-          <span>{error || modelNotice}</span>
+          <span>{error}</span>
           {!snapshot && <Button onClick={leave}>Back to library</Button>}
           <Button
             appearance="subtle"

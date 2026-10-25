@@ -2,11 +2,17 @@
 
 Status reconciled on 2026-10-22 against current source and the [original reader-improvements note](../historical/planning/READER-IMPROVEMENTS-01.md). These are recorded requests, not a claim that every item is selected for the next release.
 
-## Optional cloud translation: requirements recorded
+## Optional cloud translation: development implementation, qualification outstanding
 
 The [cloud translation requirements](CLOUD-TRANSLATION-REQUIREMENTS.md) record the agreed extension: user-owned provider accounts, an active provider selectable in Settings, automatic cloud fallback after allowance exhaustion without user-managed ordering, and provider-enforced free cutoffs configured by users. Ollama remains a manually selected option with its existing Load/Unload behavior and is excluded from automatic fallback.
 
-Planning only; no cloud implementation or runtime qualification has been performed. The initial provider list, language scope, internal fallback selection, saved-provider behavior after fallback, and handling of non-exhaustion errors remain to be settled. See the requirements for candidates and security boundaries.
+The [E07 delivery plan and stories](epics/E07-optional-cloud-translation.md) cover Microsoft Translator and DeepL, initially German to English. Fallback uses a fixed built-in order and saves the new current provider; recovered providers never automatically take over. Manual availability checks send no book text; Microsoft's explicit check uses a short fixed test phrase and a small amount of allowance. Non-exhaustion errors require an explicit retry or manual switch.
+
+The development implementation includes both supported cloud adapters, Windows-protected credentials, validated IPC, persistent exhaustion-only fallback, explicit checks, and reader/Settings integration. Automated provider cases use controlled responses; real-provider credentials, allowance behavior, and literary quality have not been qualified. See [E07 evidence/status](epics/E07-optional-cloud-translation.md#development-evidence-and-remaining-qualification) and [qualification](../release/QUALIFICATION.md#e07-cloud-translation). The epic remains incomplete until its required qualification is satisfied.
+
+The general **Reader settings** panel now combines appearance, translation-service selection/status, and local model Load/Unload without leaving the book. There are no separate top-right translation controls; cloud credential forms remain in main Settings. Switching preserves the passage, invalidates old selections/results, and applies to the next explicit Translate; it never loads Ollama or sends text by itself.
+
+Scope update, 2026-10-25: the owner removed Amazon Translate after the free-account trial exposed a service restriction. C05 is dropped, not an outstanding provider qualification gate. Migration on the first translation-provider state read removes its saved app-owned credentials and allowance metadata; an AWS current-provider choice becomes an explicit choose-provider state. The 0.3.0 release candidate passed the full Windows release pipeline and 12 packaged fixtures. Real Microsoft/DeepL account, Ollama, and hosted-update checks remain outstanding; prior AWS diagnostics are historical evidence only.
 
 ## Additional formats: scope needed
 

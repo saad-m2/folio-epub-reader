@@ -87,6 +87,25 @@ export class LibraryRepository {
 
   close(): void { this.db.close(); }
 
+  readTranslationState(): string | undefined {
+    return (this.db.prepare("SELECT value FROM preferences WHERE key = 'translationState'").get() as { value: string } | undefined)?.value;
+  }
+
+  readTranslationSecret(provider: string): Buffer | undefined {
+    const row = this.db.prepare("SELECT value FROM encrypted_secrets WHERE key = ?").get(`translation:${provider}`) as { value: Uint8Array } | undefined;
+    return row ? Buffer.from(row.value) : undefined;
+  }
+
+  writeTranslationState(state: string, secret?: { provider: string; encrypted: Buffer | null }): void {
+    this.db.exec("BEGIN");
+    try {
+      if (secret?.encrypted) this.db.prepare("INSERT INTO encrypted_secrets(key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(`translation:${secret.provider}`, secret.encrypted);
+      else if (secret) this.db.prepare("DELETE FROM encrypted_secrets WHERE key = ?").run(`translation:${secret.provider}`);
+      this.db.prepare("INSERT INTO preferences(key, value) VALUES ('translationState', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(state);
+      this.db.exec("COMMIT");
+    } catch (error) { this.db.exec("ROLLBACK"); throw error; }
+  }
+
   list(): LibraryBook[] {
     const rows = this.db.prepare("SELECT b.*, COALESCE(p.resource_progress, 0) AS progress FROM books b LEFT JOIN reading_positions p ON p.book_id = b.id ORDER BY b.opened_at IS NULL, b.opened_at DESC, b.added_at DESC").all() as Array<BookRow & { progress: number }>;
     return rows.map(row => {

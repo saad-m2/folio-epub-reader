@@ -2,6 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { Appearance, PageLayout, ReaderMode } from "../shared/contracts";
 import { AppearanceControls, Icon, ModeSwitch, PageLayoutSwitch } from "./ui";
 import { SettingsUpdates } from "./settings-updates";
+import { TranslationSettings } from "./translation-settings";
+import type { TranslationProvider } from "../shared/translation";
 import { appearanceColors } from "./appearance";
 
 export type FontEntry = {
@@ -35,7 +37,7 @@ type Props = {
 const tabs = [
   ["reading", "Reading appearance"],
   ["fonts", "Font library"],
-  ["translation", "Local translation"],
+  ["translation", "Translation"],
   ["updates", "App updates"],
   ["about", "About"],
 ] as const;
@@ -90,6 +92,7 @@ export function SettingsView({
   const [checking, setChecking] = useState(false);
   const checkLock = useRef(false);
   const [modelNotice, setModelNotice] = useState("");
+  const [currentProvider, setCurrentProvider] = useState<TranslationProvider | null>();
   const installed = fonts.filter((font) => font.installed);
 
   async function save(change: Partial<Settings>): Promise<void> {
@@ -151,6 +154,7 @@ export function SettingsView({
     return () => window.clearInterval(timer);
   }, [tab, refreshModel]);
   async function changeModel(action: "load" | "unload"): Promise<void> {
+    if (action === "load" && currentProvider !== "ollama") return;
     if (modelLock.current || checkLock.current) return;
     modelLock.current = true;
     setModelBusy(true);
@@ -457,10 +461,11 @@ export function SettingsView({
           aria-labelledby="settings-tab-translation"
           hidden={tab !== "translation"}
         >
+          {tab === "translation" && <TranslationSettings onCurrentChange={setCurrentProvider} />}
           <div className="settings-grid">
             <section aria-labelledby="local-translation-title">
               <h2 id="local-translation-title">
-                A little help between languages.
+                Local translation with Ollama
               </h2>
               <p className="small muted">
                 Translate selected German passages into English, without leaving
@@ -499,7 +504,7 @@ export function SettingsView({
                   <button
                     type="button"
                     className="btn primary"
-                    disabled={modelBusy || checking}
+                    disabled={modelBusy || checking || currentProvider !== "ollama"}
                     onClick={() => void changeModel("load")}
                   >
                     Load model
@@ -541,6 +546,7 @@ export function SettingsView({
                   {modelNotice}
                 </p>
               )}
+              {currentProvider !== "ollama" && <p className="small muted">Select Local Ollama above before loading its model. An already loaded model can still be unloaded to release memory.</p>}
               <div className="card" style={{ marginTop: 20 }}>
                 <h3>Only when you ask</h3>
                 <p>
@@ -629,10 +635,10 @@ export function SettingsView({
             </div>
             <div className="form-row">
               <span className="small muted">Optional translation</span>
-              <span className="small">Ollama · German to English</span>
+              <span className="small">Local or cloud · German to English</span>
             </div>
             <p className="small muted">
-              Books and reading work offline. Translation works offline after
+              Books and reading work offline. Local translation works offline after
               installing Ollama and its supported model. Translations are
               temporary and are not saved to your book.
             </p>

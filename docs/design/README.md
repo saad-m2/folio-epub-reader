@@ -8,6 +8,7 @@ The approved direction is Design A, Quiet bookshelf, implemented in the live Rea
 - Reader themes are System, Light, Dark, and Sepia, independent of the fixed-dark app shell.
 - Cover grid, selected-book details, and continue-reading information use actual library state. Narrow layouts use a compact details dialog.
 - Reader controls, TOC, appearance, and translation surfaces share the visual system. Keep focus visible, contain focus in modal overlays, and restore it on dismissal.
+- The general **Reader settings** panel groups appearance with translation-service selection/status and local Load/Unload. Keep cloud credential setup in main Settings and avoid separate top-right translation controls.
 - Model loading and selected-text translation remain separate actions. UI polish must preserve source-file ownership, reader continuity, native confirmations, and offline reading.
 
 ## Implementation map

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CloudProviderSchema, ProviderConfigurationSchema, TranslationProviderSchema } from "./translation";
 
 export const limits = {
   maxIpcText: 5_000,
@@ -7,7 +8,7 @@ export const limits = {
   operationTimeoutMs: 10_000,
 } as const;
 
-export const safeErrorCodes = ["INVALID_REQUEST", "UNAUTHORIZED", "NOT_FOUND", "SOURCE_CHANGED", "SOURCE_UNREADABLE", "INVALID_EPUB", "UNSUPPORTED_EPUB", "QUOTA_EXCEEDED", "CANCELLED", "HELPER_FAILED", "TIMEOUT", "SERVICE_UNAVAILABLE", "MODEL_MISSING", "MODEL_UNLOADED", "MODEL_TIMEOUT", "MODEL_CANCELLED", "MODEL_OUT_OF_MEMORY", "MODEL_INTERRUPTED", "MODEL_INVALID_OUTPUT", "MODEL_LOAD_FAILED", "MODEL_SERVICE_ERROR", "MODEL_UNEXPECTED_RELOAD"] as const;
+export const safeErrorCodes = ["INVALID_REQUEST", "UNAUTHORIZED", "NOT_FOUND", "SOURCE_CHANGED", "SOURCE_UNREADABLE", "INVALID_EPUB", "UNSUPPORTED_EPUB", "QUOTA_EXCEEDED", "CANCELLED", "HELPER_FAILED", "TIMEOUT", "SERVICE_UNAVAILABLE", "MODEL_MISSING", "MODEL_UNLOADED", "MODEL_TIMEOUT", "MODEL_CANCELLED", "MODEL_OUT_OF_MEMORY", "MODEL_INTERRUPTED", "MODEL_INVALID_OUTPUT", "MODEL_LOAD_FAILED", "MODEL_SERVICE_ERROR", "MODEL_UNEXPECTED_RELOAD", "CLOUD_EXHAUSTED", "CLOUD_RATE_LIMITED", "CLOUD_AUTHENTICATION", "CLOUD_NETWORK", "CLOUD_TIMEOUT", "CLOUD_CANCELLED", "CLOUD_INVALID_OUTPUT", "CLOUD_SERVICE_ERROR", "CLOUD_NOT_CONFIGURED", "CLOUD_STORAGE", "CLOUD_INVALID_REQUEST"] as const;
 export const SafeErrorSchema = z.object({ code: z.enum(safeErrorCodes), correlationId: z.string().uuid() }).strict();
 export type SafeError = z.infer<typeof SafeErrorSchema>;
 export const ResultSchema = <T extends z.ZodTypeAny>(value: T) => z.union([z.object({ ok: z.literal(true), value }).strict(), z.object({ ok: z.literal(false), error: SafeErrorSchema }).strict()]);
@@ -74,6 +75,12 @@ export const RendererIntents = {
   getTranslationModelStatus: z.object({}).strict(),
   loadTranslationModel: z.object({}).strict(),
   unloadTranslationModel: z.object({}).strict(),
+  getTranslationProviders: z.object({}).strict(),
+  saveTranslationProvider: ProviderConfigurationSchema,
+  removeTranslationProvider: z.object({ provider: CloudProviderSchema }).strict(),
+  setTranslationProvider: z.object({ provider: TranslationProviderSchema }).strict(),
+  checkTranslationProviderAvailability: z.object({ provider: CloudProviderSchema }).strict(),
+  getTranslationRequestStatus: TranslationRequestSchema,
   downloadFont: z.object({ fontId: z.string().min(1).max(100) }).strict(),
   listFonts: z.object({}).strict(),
   getFontData: z.object({ fontId: z.string().min(1).max(100) }).strict(),

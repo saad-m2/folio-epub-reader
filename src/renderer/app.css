@@ -488,3 +488,14 @@ select {
     background: Highlight;
   }
 }
+
+.translation-providers { margin-bottom: 28px; }
+.provider-choice { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.provider-choice h3 { margin-bottom: 6px; }
+.provider-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.cloud-provider { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 18px; }
+.provider-form { margin-top: 16px; max-width: 600px; }
+.provider-form fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.provider-form label { display: block; margin: 12px 0; font-size: 13px; }
+.provider-form input { display: block; width: 100%; min-width: 0; margin-top: 7px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--text); font: inherit; }
+.provider-form input:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }

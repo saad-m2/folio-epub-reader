@@ -2,6 +2,30 @@ import { describe, expect, it } from "vitest";
 import { ReaderLocationSchema, RendererIntents, limits } from "../src/shared/contracts";
 
 describe("Epic 01 contracts", () => {
+  it("limits cloud configuration to named providers and validated credential fields", () => {
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "microsoft", apiKey: "test-key", region: "westeurope" }).success).toBe(true);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "deepl", apiKey: "test-key:fx" }).success).toBe(true);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "deepl", apiKey: "test-key:fx", url: "https://private.invalid" }).success).toBe(false);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "microsoft", apiKey: "test-key", region: "localhost:8080" }).success).toBe(false);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "microsoft", apiKey: "key\r\nheader: injection" }).success).toBe(false);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "deepl", apiKey: "x".repeat(513) }).success).toBe(false);
+    expect(RendererIntents.setTranslationProvider.safeParse({ provider: "ollama", preferred: "deepl" }).success).toBe(false);
+    expect(RendererIntents.removeTranslationProvider.safeParse({ provider: "ollama" }).success).toBe(false);
+    expect(RendererIntents.checkTranslationProviderAvailability.safeParse({ provider: "microsoft", text: "book passage" }).success).toBe(false);
+    expect(RendererIntents.getTranslationRequestStatus.safeParse({ sessionId: crypto.randomUUID(), selectionId: crypto.randomUUID() }).success).toBe(true);
+    expect(RendererIntents.getTranslationRequestStatus.safeParse({ sessionId: crypto.randomUUID(), selectionId: crypto.randomUUID(), text: "private" }).success).toBe(false);
+  });
+
+  it("rejects the retired AWS provider on every configuration and routing intent", () => {
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "aws", accessKeyId: "test-key", secretAccessKey: "test-secret", region: "eu-central-1", sessionToken: "test-token" }).success).toBe(false);
+    expect(RendererIntents.saveTranslationProvider.safeParse({ provider: "aws", apiKey: "test-key" }).success).toBe(false);
+    for (const intent of [RendererIntents.setTranslationProvider, RendererIntents.removeTranslationProvider, RendererIntents.checkTranslationProviderAvailability]) {
+      expect(intent.safeParse({ provider: "aws" }).success).toBe(false);
+      expect(intent.safeParse({ provider: "microsoft" }).success).toBe(true);
+      expect(intent.safeParse({ provider: "deepl" }).success).toBe(true);
+    }
+    expect(RendererIntents.setTranslationProvider.safeParse({ provider: "ollama" }).success).toBe(true);
+  });
   it("accepts only the supported page layouts while preserving partial settings updates", () => {
     expect(RendererIntents.saveSettings.safeParse({ pageLayout: "single" }).success).toBe(true);
     expect(RendererIntents.saveSettings.safeParse({ pageLayout: "double" }).success).toBe(true);

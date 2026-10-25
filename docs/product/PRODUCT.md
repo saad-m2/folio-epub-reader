@@ -11,7 +11,7 @@ The product is a polished Windows desktop application for casual book readers wh
 
 The application provides a visual book library, remembers reading progress, supports both continuous and page-by-page reading, and offers global controls for the reading appearance. It is local-first and remains fully usable for ordinary reading without an internet connection.
 
-AI-assisted German-to-English translation is optional. It uses a separately installed local model and runs only after the reader explicitly loads that model and requests translation of selected book text.
+German-to-English translation is optional. Use a separately installed local model with explicit Load/Translate, or configure your own cloud provider and explicitly request translation of selected book text. See section 10 and the [cloud setup guide](CLOUD-TRANSLATION-SETUP.md); E07 real-account qualification is recorded separately from implementation.
 
 ## 2. Product principles
 
@@ -31,7 +31,7 @@ Users read EPUB files that they already own and store locally. The application d
 
 Reading never depends on AI setup. Selecting text does not load a model or start translation. The product must not imply that translation is ready when the local service or model is missing or unloaded.
 
-The user installs and runs the local translation runtime and model separately. Translation requires no API key or per-request payment, and selected book text stays on the user's machine.
+For local translation the user installs and runs the runtime and model separately. The local option requires no API key or per-request payment and keeps selected text on the user's machine. Optional cloud translation uses user-owned credentials and sends selected text to connected providers after explicit Translate, including exhaustion fallback.
 
 ### 2.5 Open-source and no-fee dependencies
 
@@ -207,7 +207,7 @@ The initial reader toolbar contains:
 - Table of contents.
 - Current chapter and chapter progress.
 - Reading-mode switch.
-- Reading appearance settings.
+- General **Reader settings**, containing appearance preferences and translation controls.
 
 The Back control returns to the library immediately. When no overlay or translation bubble is open, `Esc` also returns to the library.
 
@@ -300,17 +300,21 @@ The exact catalog contents are not defined by this document.
 - AI translation is optional.
 - The initial translation direction is German to English.
 - The user installs Ollama and the supported local model separately; the app neither bundles nor downloads them.
-- Translation requires no API key, cloud account, or per-request charge. Once installed, it works without internet access.
-- The initial supported model is Tencent Hy-MT2-7B Q4_K_M. The app does not expose a provider, model, endpoint, or prompt picker.
+- Local translation requires no API key, cloud account, or per-request charge. Once installed, it works without internet access.
+- The supported local model is Tencent Hy-MT2-7B Q4_K_M. Settings offers local Ollama and configured Microsoft Translator and DeepL accounts. There is no arbitrary model, endpoint, or prompt picker.
 - Ordinary reading works without Ollama or the model.
 
 ### 10.2 AI Settings
 
 Settings explains how to install the supported local runtime and model and how to diagnose a missing installation. No API key or target-language setting is needed for the initial German-to-English direction. The app does not start Ollama, download a model, or load it into GPU memory on launch.
 
+For cloud translation, Settings configures protected credentials, selects the saved current provider, and offers removal and explicit availability checks. Connecting an account or selecting a provider submits no text. The [cloud requirements](CLOUD-TRANSLATION-REQUIREMENTS.md) and [setup guide](CLOUD-TRANSLATION-SETUP.md) define fallback, free-cutoff setup, and provider-specific checks.
+
+The general **Reader settings / Translation** section provides service selection for local Ollama and configured cloud providers, status, and local Load/Unload alongside appearance preferences, without leaving the book or changing the reading position. There are no separate top-right translation controls. A manual switch cancels pending translation and clears the old selection/result; the new service applies to the next explicit Translate. Switching from local Ollama to a configured cloud service automatically unloads the local translation model. An unload failure keeps the previous service selected and reports an error; a stopped or uninstalled Ollama does not block cloud selection. Selecting local Ollama never loads it automatically. Credential setup remains in Settings.
+
 ### 10.3 Manual model controls
 
-- The reader controls include **Load translation model**, **Unload translation model**, and a clear status.
+- **Reader settings / Translation** includes **Load translation model**, **Unload translation model**, and a clear status for local Ollama.
 - Opening the app or a book, selecting text, and visiting Settings never load the model.
 - **Load** explicitly warms the local model; **Unload** explicitly releases it while the reader remains open. Switching books does not silently change its state.
 - Status distinguishes missing Ollama, missing model, unloaded, loading, loaded, unloading, and recoverable failure. It reflects the local runtime's actual state, which another local Ollama client may change.
@@ -322,7 +326,7 @@ Settings explains how to install the supported local runtime and model and how t
 1. The user selects a word, phrase, sentence, or longer passage in the book.
 2. A small **Translate** action appears near the selection.
 3. Selection alone does not submit any text.
-4. The selected text is sent only to the local model when the user clicks **Translate** and the model is loaded.
+4. On **Translate**, the selected text goes to the current provider: the local model must already be loaded; a cloud account must be configured. Confirmed cloud exhaustion may retry that same selection across configured eligible cloud providers, with each attempted at most once.
 
 The translation action contains only **Translate**. Copying and other ordinary text actions remain in the normal Windows selection workflow.
 
@@ -335,6 +339,8 @@ If the user clicks **Translate** while the model is unloaded or unavailable:
 - Loading the model never automatically translates an earlier selection. The user selects text and clicks **Translate** again after loading.
 
 The experience must not present translation as ready when the model is not loaded.
+
+These model-readiness rules apply to the local option. Cloud errors distinguish exhaustion, authentication, temporary rate limits, network failures, timeout, and invalid output. Only confirmed exhaustion causes automatic fallback; other failures need explicit retry or a manual switch. No cloud failure selects or loads Ollama.
 
 ### 10.6 Translation size limit
 
@@ -354,6 +360,7 @@ The experience must not present translation as ready when the model is not loade
 The result provides:
 
 - The translated text.
+- The provider that produced it.
 - **Copy**.
 - **Expand** when a larger view is useful.
 
@@ -378,12 +385,18 @@ Failures are shown in plain language inside the translation surface:
 
 Raw technical errors are not shown by default.
 
+### 10.10 Cloud fallback and allowance recovery
+
+The current provider is saved across restarts without a separate preferred provider. Following confirmed exhaustion, Leaf picks the first configured, eligible, unattempted provider from Microsoft, then DeepL, saves that provider as current before its attempt, and stays there until manually changed or exhausted again. Recovery of another provider never automatically changes the current provider.
+
+Exhaustion survives restart. Manual Check availability uses the DeepL usage API. Microsoft sends a short fixed test phrase only on the explicit check action and explains its small allowance use. Checks never send book text, automatically restore a preferred provider, or translate an old selection. Unknown checks retain exhaustion; Leaf does not assume all allowances reset monthly. Removing the current cloud account requires a new explicit provider choice. Amazon Translate was removed by the owner on 2026-10-25; migration deletes its app-owned saved credentials/allowance state and clears an AWS current-provider choice, requiring explicit selection of a supported option without loading Ollama.
+
 ## 11. Offline and network behavior
 
 - Adding, opening, reading, navigating, and restoring books work offline.
 - The bundled default font works offline.
 - Previously downloaded fonts work offline.
-- Optional font downloads, explicit app update checks/downloads, and confirmed external HTTPS links use internet access. Update checks run only when requested in Settings; ordinary launch and reading do not check for updates. Installing Ollama or downloading the model is a separate user action outside the app; local translation itself needs no internet connection.
+- Optional cloud translation and explicit cloud availability checks, font downloads, explicit app update checks/downloads, and confirmed external HTTPS links use internet access. Update checks run only when requested in Settings; ordinary launch and reading do not check for updates. Installing Ollama or downloading the model is a separate user action outside the app; local translation itself needs no internet connection.
 - Failure of an online action must not prevent ordinary offline reading.
 
 ### 11.1 App updates
@@ -399,7 +412,7 @@ The following are deliberately postponed and are not initial-version requirement
 - Annotations or notes.
 - Book or library search.
 - A general **Ask AI** action with a user-written prompt.
-- Cloud accounts.
+- Leaf-hosted cloud accounts (user-owned translation-provider accounts are covered by section 10).
 - Cloud synchronization.
 - Mobile applications.
 - PDF support.

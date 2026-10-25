@@ -1,4 +1,4 @@
-import { app, autoUpdater, BrowserWindow, clipboard, dialog, ipcMain, Menu, protocol, session, shell, type IpcMainInvokeEvent, type Session } from "electron";
+import { app, autoUpdater, BrowserWindow, clipboard, dialog, ipcMain, Menu, protocol, safeStorage, session, shell, type IpcMainInvokeEvent, type Session } from "electron";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { randomUUID } from "node:crypto";
@@ -7,6 +7,10 @@ import { TrustedPublicationSessions } from "./publications";
 import { inspectLocalEpub, LibraryRepository, revalidateSource, SourceValidationError } from "./library";
 import { requireAppMainFrame, safeError, redactError } from "./security";
 import { LocalTranslationGateway, TranslationFailure, type TranslationFailureCode } from "./translation";
+import { CloudTranslationFailure, type CloudFailureCode } from "./cloud-translation-types";
+import { createCloudAdapters } from "./cloud-adapters";
+import { TranslationStore } from "./translation-store";
+import { TranslationCoordinator } from "./translation-coordinator";
 import { DEFAULT_FONT, FontManager } from "./fonts";
 import { CloseSessionSchema, OpenSessionSchema, RemoveBookSchema, RendererIntents, ReaderLocationSchema, type ReaderLocation } from "../shared/contracts";
 import { handleSquirrelEvent } from "./squirrel";
@@ -26,6 +30,8 @@ let fontManager: FontManager | undefined;
 let updates: UpdateController | undefined;
 const pendingImports = new Map<string, { sourcePath: string; owner: Session; archiveHash: string }>();
 let translation = new LocalTranslationGateway();
+let translationStore: TranslationStore | undefined;
+let translationCoordinator: TranslationCoordinator | undefined;
 let activeSelection: { id: string; sessionId: string; owner: Session; text: string; expiresAt: number } | undefined;
 let currentTranslation: { selectionId: string; text: string } | undefined;
 
@@ -41,13 +47,30 @@ function translationError(code: TranslationFailureCode): ReturnType<typeof safeE
 
 async function translationOperation<T>(operation: () => Promise<T>): Promise<T> {
   try { return await operation(); }
-  catch (error) { throw error instanceof TranslationFailure ? translationError(error.code) : safeError("MODEL_SERVICE_ERROR"); }
+  catch (error) {
+    if (error instanceof TranslationFailure) throw translationError(error.code);
+    if (error instanceof CloudTranslationFailure) {
+      const codes: Record<CloudFailureCode, Parameters<typeof safeError>[0]> = {
+        exhausted: "CLOUD_EXHAUSTED", rate_limited: "CLOUD_RATE_LIMITED", authentication: "CLOUD_AUTHENTICATION",
+        network: "CLOUD_NETWORK", timeout: "CLOUD_TIMEOUT", cancelled: "CLOUD_CANCELLED", invalid_output: "CLOUD_INVALID_OUTPUT",
+        service_error: "CLOUD_SERVICE_ERROR", not_configured: "CLOUD_NOT_CONFIGURED", storage: "CLOUD_STORAGE", invalid_request: "CLOUD_INVALID_REQUEST",
+      };
+      throw safeError(codes[error.code]);
+    }
+    throw safeError("CLOUD_SERVICE_ERROR");
+  }
+}
+
+function coordinator(): TranslationCoordinator {
+  if (!translationCoordinator) throw new CloudTranslationFailure("not_configured");
+  return translationCoordinator;
 }
 
 function clearTranslationSelection(): void {
   activeSelection = undefined;
   currentTranslation = undefined;
   translation.cancelActiveTranslation();
+  translationCoordinator?.cancel();
 }
 
 async function releaseActivePublicationSessions(): Promise<void> {
@@ -279,12 +302,37 @@ registerIntent("unloadTranslationModel", async () => {
   clearTranslationSelection();
   return translationOperation(() => translation.unload());
 });
+registerIntent("getTranslationProviders", () => translationOperation(async () => coordinator().getProviders()));
+registerIntent("saveTranslationProvider", (_event, payload) => translationOperation(async () => {
+  clearTranslationSelection();
+  return coordinator().saveProvider(RendererIntents.saveTranslationProvider.parse(payload));
+}));
+registerIntent("removeTranslationProvider", (_event, payload) => translationOperation(async () => {
+  clearTranslationSelection();
+  return coordinator().removeProvider(RendererIntents.removeTranslationProvider.parse(payload).provider);
+}));
+registerIntent("setTranslationProvider", (_event, payload) => translationOperation(async () => {
+  clearTranslationSelection();
+  return coordinator().setProvider(RendererIntents.setTranslationProvider.parse(payload).provider);
+}));
+registerIntent("checkTranslationProviderAvailability", (_event, payload) => translationOperation(async () =>
+  coordinator().checkAvailability(RendererIntents.checkTranslationProviderAvailability.parse(payload).provider)));
+registerIntent("getTranslationRequestStatus", (event, payload) => {
+  const { sessionId, selectionId } = RendererIntents.getTranslationRequestStatus.parse(payload);
+  if (!activeSelection || activeSelection.id !== selectionId || activeSelection.sessionId !== sessionId || activeSelection.owner !== event.sender.session || activeSelection.expiresAt < Date.now() || !publications.verifySessionOwned(sessionId, event.sender.session)) throw safeError("CLOUD_CANCELLED");
+  return translationOperation(async () => coordinator().getProgress());
+});
 registerIntent("translateSelection", async (event, payload) => {
   const { sessionId, selectionId } = RendererIntents.translateSelection.parse(payload);
   const selection = activeSelection;
   if (!selection || selection.id !== selectionId || selection.sessionId !== sessionId || selection.owner !== event.sender.session || selection.expiresAt < Date.now() || !publications.verifySessionOwned(sessionId, event.sender.session)) throw safeError("MODEL_CANCELLED");
   currentTranslation = undefined;
-  const result = await translationOperation(() => translation.translate(selection.text));
+  const valid = (): boolean => activeSelection === selection && selection.expiresAt >= Date.now() && publications.verifySessionOwned(sessionId, event.sender.session);
+  // Expiry also aborts an adapter's in-flight request rather than waiting for its return.
+  const expiry = setTimeout(() => { if (activeSelection === selection) clearTranslationSelection(); }, Math.max(0, selection.expiresAt - Date.now() + 1));
+  let result: Awaited<ReturnType<TranslationCoordinator["translate"]>>;
+  try { result = await translationOperation(() => coordinator().translate(selection.text, valid)); }
+  finally { clearTimeout(expiry); }
   if (activeSelection !== selection || selection.expiresAt < Date.now() || !publications.verifySessionOwned(sessionId, event.sender.session)) throw safeError("MODEL_CANCELLED");
   currentTranslation = { selectionId, text: result.text };
   return result;
@@ -392,6 +440,8 @@ app.whenReady().then(async () => {
   if (await handleSquirrelEvent()) { app.quit(); return; }
   await fs.mkdir(app.getPath("userData"), { recursive: true });
   library = new LibraryRepository(path.join(app.getPath("userData"), "library.sqlite"));
+  translationStore = new TranslationStore(library, safeStorage);
+  translationCoordinator = new TranslationCoordinator(translationStore, createCloudAdapters(), translation);
   fontManager = new FontManager(path.join(app.getPath("userData"), "fonts"));
   const manifest = JSON.parse(await fs.readFile(path.join(app.getAppPath(), "package.json"), "utf8")) as { updateRepository?: unknown };
   const installed = app.isPackaged && await fs.access(path.resolve(path.dirname(process.execPath), "..", "Update.exe")).then(() => true, () => false);
@@ -404,6 +454,7 @@ app.whenReady().then(async () => {
       // Keep the running app usable if the platform updater cannot restart it.
       // Normal quit handling can safely dispose this fresh, unloaded gateway.
       translation = new LocalTranslationGateway();
+      translationCoordinator = new TranslationCoordinator(translationStore!, createCloudAdapters(), translation);
     },
   });
   const rendererRoot = path.join(app.getAppPath(), "dist", "renderer");

@@ -4,9 +4,9 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.2.3
+## Install version 0.3.0
 
-Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.2; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
+Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.3; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
 The installer is unsigned. A local build is not a published GitHub release.
 
@@ -38,6 +38,14 @@ The repository must be public and have published, non-prerelease GitHub Releases
 Release access and a published newer version are required to qualify the real hosted download/restart flow. Local controller tests cannot establish that the release service is working. Do not describe it as verified until that two-version installed test has run.
 
 A locally verified release can also be published with `gh release create vVERSION --target TESTED_COMMIT` and the exact installer, `RELEASES`, full NuGet package, and supply-chain reports from `pnpm package:release`. Upload all files before publishing the release as latest. License reports use repository-relative paths so published evidence does not expose the build user's home directory.
+
+## 0.3.0 changes and qualification
+
+Cloud translation adds user-owned Microsoft Translator and DeepL accounts alongside local Ollama. Translation service selection, status, and local model controls share Reader settings with appearance controls. Switching from Ollama to cloud releases the local translation model; returning to local requires an explicit Load. Confirmed cloud allowance exhaustion can switch to another configured cloud provider and stay there. Amazon Translate is not supported; retired app-owned credentials are removed by migration.
+
+On 2026-10-25, version 0.3.0 passed type checking, all 276 tests across 23 files, and the full Windows release pipeline: license checks, zero-advisory dependency audit, Squirrel installer creation, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. The staged source and packaged app were checked to exclude account data and runtime databases.
+
+See [account setup](../product/CLOUD-TRANSLATION-SETUP.md) and [qualification scope](QUALIFICATION.md#e07-cloud-translation). Credentials remain in Windows-protected local app storage and are not part of the installer or repository. Real-provider allowance/quality checks, physical GPU-memory release, hosted older-version download/restart, Narrator, and physical display-scaling checks remain unrun for this candidate.
 
 ## 0.2.3 verification
 

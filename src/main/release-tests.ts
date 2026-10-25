@@ -37,6 +37,29 @@ export async function runReleaseTests(window: BrowserWindow, publications: Trust
   };
   try {
     await ready();
+    // Exercise the real bridge and Windows protected storage without contacting providers.
+    // The runner always supplies an isolated profile; these are deliberately fake credentials.
+    const cloudConfiguration = await window.webContents.executeJavaScript(`(async () => {
+      const initial = await window.readerApi.getTranslationProviders();
+      const saved = await window.readerApi.saveTranslationProvider({ provider: 'microsoft', apiKey: 'qualification-test-key' });
+      const selected = await window.readerApi.setTranslationProvider('microsoft');
+      const invalidCheck = await window.readerApi.checkTranslationProviderAvailability({ provider: 'microsoft', text: 'forbidden' });
+      const staleStatus = await window.readerApi.getTranslationRequestStatus({ sessionId: crypto.randomUUID(), selectionId: crypto.randomUUID() });
+      const removed = await window.readerApi.removeTranslationProvider('microsoft');
+      const restored = await window.readerApi.setTranslationProvider('ollama');
+      return {
+        defaultLocal: initial.ok && initial.value.current === 'ollama',
+        saved: saved.ok && saved.value.providers.some(p => p.provider === 'microsoft' && p.configured),
+        redacted: saved.ok && !JSON.stringify(saved.value).includes('qualification-test-key') && !JSON.stringify(saved.value).includes('apiKey'),
+        selected: selected.ok && selected.value.current === 'microsoft',
+        invalidCheckRejected: !invalidCheck.ok && invalidCheck.error.code === 'INVALID_REQUEST',
+        staleStatusRejected: !staleStatus.ok && staleStatus.error.code === 'CLOUD_CANCELLED',
+        removed: removed.ok && removed.value.current === null && !removed.value.providers.some(p => p.provider === 'microsoft' && p.configured),
+        restored: restored.ok && restored.value.current === 'ollama'
+      };
+    })()`, true) as Record<string, boolean>;
+    report.boundaries.cloudConfiguration = cloudConfiguration;
+    check(Object.values(cloudConfiguration).every(Boolean), 'cloud configuration bridge/protected-storage checks failed');
     window.webContents.debugger.attach('1.3');
     const manifest = JSON.parse(await fs.readFile(path.join(corpus, 'release-corpus.json'), 'utf8'));
     for (const fixture of manifest.fixtures) {
@@ -129,7 +152,7 @@ export async function runReleaseTests(window: BrowserWindow, publications: Trust
       return {malformed,oversized,proof,network:await blocked('https://example.com'),file:await blocked('file:///C:/Windows/win.ini')};
     })()`);
     check(!denied.malformed.ok && !denied.oversized.ok && !denied.proof.ok && denied.network && denied.file, 'renderer boundary failed');
-    report.boundaries = { oversizedSource: oversized, crossSession, wrongOrigins: true, ipc: denied };
+    report.boundaries = { ...report.boundaries, oversizedSource: oversized, crossSession, wrongOrigins: true, ipc: denied };
     const recovered = new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('renderer did not recover')), 15_000);
       window.webContents.once('did-finish-load', () => { clearTimeout(timer); resolve(); });
