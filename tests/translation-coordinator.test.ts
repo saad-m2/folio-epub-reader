@@ -4,7 +4,8 @@ import { TranslationStore } from "../src/main/translation-store";
 import { TranslationCoordinator } from "../src/main/translation-coordinator";
 import { LocalTranslationGateway, TRANSLATION_MODEL, TranslationFailure } from "../src/main/translation";
 import { CloudTranslationFailure, type CloudAdapters, type CloudTranslationAdapter } from "../src/main/cloud-translation-types";
-import type { Availability, CloudProvider } from "../src/shared/translation";
+import { CLOUD_PROVIDERS, type Availability, type CloudProvider } from "../src/shared/translation";
+import { createCloudAdapters } from "../src/main/cloud-adapters";
 
 const repositories: LibraryRepository[] = [];
 afterEach(() => { for (const repository of repositories.splice(0)) repository.close(); });
@@ -28,15 +29,55 @@ function setup(configured: CloudProvider[] = ["microsoft", "deepl"]) {
     translate: vi.fn(async () => ({ text: "English" })),
     checkAvailability: vi.fn(async (): Promise<Availability> => ({ state: "available" })),
   });
-  const adapters: CloudAdapters = { microsoft: adapter(), deepl: adapter() };
+  const adapters: CloudAdapters = { microsoft: adapter(), zpk: adapter(), lara: adapter(), traduck: adapter(), deepl: adapter() };
   const local = { translate: vi.fn(async () => ({ text: "Local English" })), cancelActiveTranslation: vi.fn(), unload: vi.fn(async () => ({ state: "unloaded" as const })) };
   const coordinator = new TranslationCoordinator(store, adapters, local);
-  for (const provider of configured) coordinator.saveProvider({ provider, apiKey: "test-key" });
+  for (const provider of configured) coordinator.saveProvider(provider === "zpk" ? { provider, applicationId: "test-app", apiKey: "test-key" } : provider === "lara" ? { provider, accessKeyId: "test-id", accessKeySecret: "test-secret" } : { provider, apiKey: "test-key" });
   if (configured[0]) store.setCurrent(configured[0]);
   return { coordinator, store, adapters, local, repository };
 }
 
 describe("translation coordinator", () => {
+  it("uses all five providers in order and persists every fallback before its attempt", async () => {
+    const { coordinator, store, adapters, local } = setup([...CLOUD_PROVIDERS]);
+    const attempted: CloudProvider[] = [];
+    for (const provider of CLOUD_PROVIDERS) vi.mocked(adapters[provider].translate).mockImplementation(async () => {
+      expect(store.getCurrent()).toBe(provider);
+      attempted.push(provider);
+      if (provider !== "deepl") throw new CloudTranslationFailure("exhausted");
+      return { text: "English" };
+    });
+    expect(await coordinator.translate("Hallo")).toEqual({ provider: "deepl", text: "English" });
+    expect(attempted).toEqual(["microsoft", "zpk", "lara", "traduck", "deepl"]);
+    expect(store.getCurrent()).toBe("deepl");
+    await coordinator.checkAvailability("microsoft");
+    expect(store.getCurrent()).toBe("deepl");
+    expect(local.translate).not.toHaveBeenCalled();
+  });
+
+  it("starts with the selected new provider and skips exhausted and unconfigured candidates", async () => {
+    const { coordinator, store, adapters } = setup(["lara", "traduck", "deepl"]);
+    store.setAvailability("traduck", { state: "exhausted" });
+    vi.mocked(adapters.lara.translate).mockRejectedValue(new CloudTranslationFailure("exhausted"));
+    expect(await coordinator.translate("Hallo")).toMatchObject({ provider: "deepl" });
+    for (const provider of ["microsoft", "zpk", "traduck"] as const) expect(adapters[provider].translate).not.toHaveBeenCalled();
+    expect(adapters.lara.translate).toHaveBeenCalledOnce();
+  });
+
+  it("integrates the real diagnostic with persisted exhaustion and fallback without repeating book text", async () => {
+    const { store, local } = setup(["zpk", "traduck"]);
+    const replies = [Response.json({ success: false }), Response.json({ success: false }), Response.json({ translation: "English" })];
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async () => replies.shift()!);
+    const coordinator = new TranslationCoordinator(store, createCloudAdapters({ fetcher }), local);
+    expect(await coordinator.translate("Private selection")).toEqual({ text: "English", provider: "traduck" });
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual(["https://zpk.systems/api/translate/text", "https://zpk.systems/api/translate/text", "https://traduck.com/api/v1/translate"]);
+    expect(fetcher.mock.calls.map(([, init]) => {
+      const body = JSON.parse(String(init?.body));
+      return body.texts?.[0].text ?? body.text;
+    })).toEqual(["Private selection", "Guten Tag.", "Private selection"]);
+    expect(store.getAvailability("zpk")).toEqual({ state: "exhausted" });
+    expect(store.getCurrent()).toBe("traduck");
+  });
   it("queues automatic unload after a pending Load through the real gateway", async () => {
     const { store, adapters } = setup();
     store.setCurrent("ollama");
@@ -169,10 +210,10 @@ describe("translation coordinator", () => {
     const { coordinator, store, adapters, local } = setup();
     for (const adapter of Object.values(adapters)) vi.mocked(adapter.translate).mockRejectedValue(new CloudTranslationFailure("exhausted"));
     await expect(coordinator.translate("Hallo")).rejects.toMatchObject({ code: "exhausted" });
-    for (const adapter of Object.values(adapters)) expect(adapter.translate).toHaveBeenCalledOnce();
+    for (const provider of ["microsoft", "deepl"] as const) expect(adapters[provider].translate).toHaveBeenCalledOnce();
     expect(store.getCurrent()).toBe("deepl");
     await expect(coordinator.translate("Hallo")).rejects.toMatchObject({ code: "exhausted" });
-    for (const adapter of Object.values(adapters)) expect(adapter.translate).toHaveBeenCalledOnce();
+    for (const provider of ["microsoft", "deepl"] as const) expect(adapters[provider].translate).toHaveBeenCalledOnce();
     expect(local.translate).not.toHaveBeenCalled();
   });
 

@@ -8,7 +8,7 @@ As a reader, I want to connect, update, and remove my own cloud translation acco
 
 ## Acceptance criteria
 
-- Settings supports Microsoft Translator and DeepL with validated provider-specific credential and region fields where required. Arbitrary request URLs, headers, or commands cannot be configured through the bridge.
+- Settings supports Microsoft Translator, ZPK, Lara Translate, Traduck, and DeepL with validated provider-specific credentials (including ZPK application ID, Lara access-key ID/secret, and Microsoft region where required). The 2026-10-26 provider expansion follows the current [setup guide](../../../CLOUD-TRANSLATION-SETUP.md). Arbitrary request URLs, headers, or commands cannot be configured through the bridge.
 - Save credentials only through main using Windows-protected encryption. Saved secrets are never returned to the renderer; Settings receives configured/missing/error metadata. Newly entered secrets are cleared from form state after use.
 - If protected storage is unavailable or decryption fails, report a safe recovery state; never fall back to plaintext storage or silently destroy the saved value.
 - Updating/removing credentials invalidates affected in-flight operations and prevents late results. Removal deletes app-owned saved credentials and allowance metadata for that account.

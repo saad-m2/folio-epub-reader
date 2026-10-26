@@ -8,7 +8,7 @@ export class CloudTranslationFailure extends Error {
   }
 }
 export interface CloudTranslationAdapter {
-  translate(text: string, configuration: ProviderConfiguration, signal: AbortSignal): Promise<{ text: string }>;
+  translate(text: string, configuration: ProviderConfiguration, signal: AbortSignal, isCurrent?: () => boolean): Promise<{ text: string }>;
   checkAvailability(configuration: ProviderConfiguration, signal: AbortSignal): Promise<Availability>;
 }
 export type CloudAdapters = Record<CloudProvider, CloudTranslationAdapter>;

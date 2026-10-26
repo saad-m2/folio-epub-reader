@@ -1,18 +1,21 @@
 import { z } from "zod";
 
-export const CLOUD_PROVIDERS = ["microsoft", "deepl"] as const;
+export const CLOUD_PROVIDERS = ["microsoft", "zpk", "lara", "traduck", "deepl"] as const;
 export const CloudProviderSchema = z.enum(CLOUD_PROVIDERS);
 export const TranslationProviderSchema = z.enum(["ollama", ...CLOUD_PROVIDERS]);
 export type CloudProvider = z.infer<typeof CloudProviderSchema>;
 export type TranslationProvider = z.infer<typeof TranslationProviderSchema>;
 export const PROVIDER_LABELS: Record<TranslationProvider, string> = {
-  ollama: "Local Ollama", microsoft: "Microsoft Translator", deepl: "DeepL",
+  ollama: "Local Ollama", microsoft: "Microsoft Translator", zpk: "ZPK", lara: "Lara Translate", traduck: "Traduck", deepl: "DeepL",
 };
 
 const secret = z.string().min(1).max(512).regex(/^[^\s\x00-\x1f\x7f]+$/);
 const region = z.string().min(1).max(40).regex(/^[a-z][a-z0-9-]*[a-z0-9]$/);
 export const ProviderConfigurationSchema = z.discriminatedUnion("provider", [
   z.object({ provider: z.literal("microsoft"), apiKey: secret, region: region.optional() }).strict(),
+  z.object({ provider: z.literal("zpk"), applicationId: secret, apiKey: secret }).strict(),
+  z.object({ provider: z.literal("lara"), accessKeyId: secret, accessKeySecret: secret }).strict(),
+  z.object({ provider: z.literal("traduck"), apiKey: secret }).strict(),
   z.object({ provider: z.literal("deepl"), apiKey: secret }).strict(),
 ]);
 // This is write-only input for the bridge. Never return a saved configuration to the renderer.

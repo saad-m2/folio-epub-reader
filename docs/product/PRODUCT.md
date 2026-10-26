@@ -301,7 +301,7 @@ The exact catalog contents are not defined by this document.
 - The initial translation direction is German to English.
 - The user installs Ollama and the supported local model separately; the app neither bundles nor downloads them.
 - Local translation requires no API key, cloud account, or per-request charge. Once installed, it works without internet access.
-- The supported local model is Tencent Hy-MT2-7B Q4_K_M. Settings offers local Ollama and configured Microsoft Translator and DeepL accounts. There is no arbitrary model, endpoint, or prompt picker.
+- The supported local model is Tencent Hy-MT2-7B Q4_K_M. Settings offers local Ollama and configured Microsoft Translator, ZPK, Lara Translate, Traduck, and DeepL accounts. There is no arbitrary model, endpoint, or prompt picker.
 - Ordinary reading works without Ollama or the model.
 
 ### 10.2 AI Settings
@@ -326,7 +326,7 @@ The general **Reader settings / Translation** section provides service selection
 1. The user selects a word, phrase, sentence, or longer passage in the book.
 2. A small **Translate** action appears near the selection.
 3. Selection alone does not submit any text.
-4. On **Translate**, the selected text goes to the current provider: the local model must already be loaded; a cloud account must be configured. Confirmed cloud exhaustion may retry that same selection across configured eligible cloud providers, with each attempted at most once.
+4. On **Translate**, the selected text goes to the current provider: the local model must already be loaded; a cloud account must be configured. Confirmed cloud exhaustion or the approved ZPK/Lara inference in section 10.10 may retry that same selection across configured eligible cloud providers, with each attempted at most once.
 
 The translation action contains only **Translate**. Copying and other ordinary text actions remain in the normal Windows selection workflow.
 
@@ -340,7 +340,7 @@ If the user clicks **Translate** while the model is unloaded or unavailable:
 
 The experience must not present translation as ready when the model is not loaded.
 
-These model-readiness rules apply to the local option. Cloud errors distinguish exhaustion, authentication, temporary rate limits, network failures, timeout, and invalid output. Only confirmed exhaustion causes automatic fallback; other failures need explicit retry or a manual switch. No cloud failure selects or loads Ollama.
+These model-readiness rules apply to the local option. Cloud errors distinguish exhaustion, authentication, temporary rate limits, network failures, timeout, and invalid output. Confirmed exhaustion or the explicit ZPK/Lara heuristic below causes automatic fallback; explicit non-exhaustion failures need retry or a manual switch. No cloud failure selects or loads Ollama.
 
 ### 10.6 Translation size limit
 
@@ -387,9 +387,11 @@ Raw technical errors are not shown by default.
 
 ### 10.10 Cloud fallback and allowance recovery
 
-The current provider is saved across restarts without a separate preferred provider. Following confirmed exhaustion, Leaf picks the first configured, eligible, unattempted provider from Microsoft, then DeepL, saves that provider as current before its attempt, and stays there until manually changed or exhausted again. Recovery of another provider never automatically changes the current provider.
+The current provider is saved across restarts without a separate preferred provider and is tried first. Following exhaustion, Leaf picks the first configured, eligible, unattempted provider from **Microsoft → ZPK → Lara → Traduck → DeepL**, saves that provider as current before its attempt, and stays there until manually changed or exhausted again. Recovery of another provider never automatically changes the current provider.
 
-Exhaustion survives restart. Manual Check availability uses the DeepL usage API. Microsoft sends a short fixed test phrase only on the explicit check action and explains its small allowance use. Checks never send book text, automatically restore a preferred provider, or translate an old selection. Unknown checks retain exhaustion; Leaf does not assume all allowances reset monthly. Removing the current cloud account requires a new explicit provider choice. Amazon Translate was removed by the owner on 2026-10-25; migration deletes its app-owned saved credentials/allowance state and clears an AWS current-provider choice, requiring explicit selection of a supported option without loading Ollama.
+Owner-approved exception, 2026-10-26: after an unclear ZPK/Lara translation service failure, send `Guten Tag.` once while the selection/session/request is valid. If that also fails without a recognized explicit cause, assume allowance exhaustion, persist it, and fall back. This inference can also classify an unclear outage as exhaustion; manual Check availability can recover it. Explicit auth/throttle/network/timeout/invalid-request/output/cancellation errors stop, including during the diagnostic. A successful diagnostic never becomes the selected-text result or causes automatic resubmission of book text.
+
+Exhaustion survives restart. Manual Check availability uses the DeepL usage API; Microsoft, ZPK, Lara, and Traduck send a fixed sentence and explain allowance use (one request for Traduck). Checks never send book text, automatically restore a preferred provider, or translate an old selection. Unknown checks retain exhaustion; Leaf does not assume all allowances reset monthly. No availability checks run in the background. Removing the current cloud account requires a new explicit provider choice. Amazon Translate was removed by the owner on 2026-10-25; migration deletes its app-owned saved credentials/allowance state and clears an AWS current-provider choice, requiring explicit selection of a supported option without loading Ollama.
 
 ## 11. Offline and network behavior
 

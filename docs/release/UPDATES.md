@@ -4,7 +4,7 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.3.0
+## Install version 0.3.1
 
 Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.3; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
@@ -29,6 +29,12 @@ The repository must be public and have published, non-prerelease GitHub Releases
 ## Developer release procedure
 
 For integration, versioning, packaging, publication, and installed-update verification, follow the [release workflow](../workflow/RELEASE-WORKFLOW.md).
+
+## 0.3.1 changes and qualification
+
+Adds ZPK, Lara Translate, and Traduck account configuration and translation. Cloud fallback order is Microsoft → ZPK → Lara → Traduck → DeepL, starting with the saved current provider. For unclear ZPK/Lara translation failures, Leaf sends the fixed phrase “Guten Tag.” once; another unclear failure is treated as exhausted allowance. Explicit authentication, network, timeout, and throttling errors retain their specific handling.
+
+The owner approved the isolated Electron preview on 2026-10-26. Final 0.3.1 candidate verification passed type checking, all 322 tests across 24 files, and the full Windows release pipeline: production build, SBOM/license checks, zero-advisory dependency audit, Squirrel installer creation, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. The earlier development trusted-publication proof also passed. Credential protection, restart persistence, keyboard/focus access, and narrow layout were checked in the isolated app. Live provider requests, real Ollama/GPU-memory release, hosted older-installed-version download/restart, Narrator, and physical display-scaling checks remain unrun.
 
 ## 0.3.0 changes and qualification
 

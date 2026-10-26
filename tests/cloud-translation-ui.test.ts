@@ -2,6 +2,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TranslationSettings } from "../src/renderer/translation-settings";
+import { cloudTranslationMessage } from "../src/renderer/translation-ui";
 import { Reader } from "../src/renderer/reader";
 import type { TranslationProvidersView, TranslationResult } from "../src/shared/translation";
 import type { ReaderSelection } from "../src/renderer/reader-adapter";
@@ -47,6 +48,9 @@ describe("cloud provider controls", () => {
     vi.stubGlobal("matchMedia", vi.fn(() => ({ matches: false, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
     view = { current: "deepl", providers: [
       { provider: "microsoft", configured: true, availability: "available" },
+      { provider: "zpk", configured: false, availability: "unknown" },
+      { provider: "lara", configured: false, availability: "unknown" },
+      { provider: "traduck", configured: false, availability: "unknown" },
       { provider: "deepl", configured: true, availability: "unknown" },
     ] };
     for (const mock of [getProviders, setProvider, saveProvider, removeProvider, checkProvider, modelStatus, translate, progress, clear, loadModel, leaveReader]) mock.mockClear();
@@ -277,6 +281,99 @@ describe("cloud provider controls", () => {
     expect(document.activeElement).toBe(button("Replace credentials DeepL"));
   });
 
+  it("lists all five cloud provider cards in the fixed provider order", async () => {
+    await settings();
+    const cards = Array.from(container.querySelectorAll("article.cloud-provider"));
+    expect(cards.map(card => card.getAttribute("aria-labelledby"))).toEqual([
+      "provider-title-microsoft", "provider-title-zpk", "provider-title-lara", "provider-title-traduck", "provider-title-deepl",
+    ]);
+    expect(cards.map(card => card.querySelector("h3")!.textContent!.trim().split(" ")[0])).toEqual(["Microsoft", "ZPK", "Lara", "Traduck", "DeepL"]);
+  });
+
+  it("saves the new providers with the documented credential payloads and clears every secret", async () => {
+    await settings();
+    await act(async () => button("Connect ZPK").click());
+    let form = container.querySelector<HTMLFormElement>("#provider-form-zpk")!;
+    form.querySelector<HTMLInputElement>("input[name=applicationId]")!.value = "zpk-app";
+    form.querySelector<HTMLInputElement>("input[name=apiKey]")!.value = "zpk-key";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenLastCalledWith({ provider: "zpk", applicationId: "zpk-app", apiKey: "zpk-key" });
+    expect(container.querySelector("#provider-form-zpk")).toBeNull();
+    await act(async () => button("Connect Lara Translate").click());
+    form = container.querySelector<HTMLFormElement>("#provider-form-lara")!;
+    form.querySelector<HTMLInputElement>("input[name=accessKeyId]")!.value = "lara-id";
+    form.querySelector<HTMLInputElement>("input[name=accessKeySecret]")!.value = "lara-secret";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenLastCalledWith({ provider: "lara", accessKeyId: "lara-id", accessKeySecret: "lara-secret" });
+    expect(container.querySelector("#provider-form-lara")).toBeNull();
+    await act(async () => button("Connect Traduck").click());
+    form = container.querySelector<HTMLFormElement>("#provider-form-traduck")!;
+    form.querySelector<HTMLInputElement>("input[name=apiKey]")!.value = "traduck-key";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenLastCalledWith({ provider: "traduck", apiKey: "traduck-key" });
+    expect(saveProvider).toHaveBeenCalledTimes(3);
+    expect(container.textContent).not.toContain("zpk-key");
+    expect(container.textContent).not.toContain("lara-secret");
+    expect(container.textContent).not.toContain("traduck-key");
+  });
+
+  it("clears both Lara secret fields when protected storage rejects the save", async () => {
+    saveProvider.mockResolvedValueOnce({ ok: false, error: { code: "CLOUD_STORAGE" } } as never);
+    await settings();
+    await act(async () => button("Connect Lara Translate").click());
+    const form = container.querySelector<HTMLFormElement>("#provider-form-lara")!;
+    form.querySelector<HTMLInputElement>("input[name=accessKeyId]")!.value = "lara-id";
+    form.querySelector<HTMLInputElement>("input[name=accessKeySecret]")!.value = "lara-secret";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenCalledExactlyOnceWith({ provider: "lara", accessKeyId: "lara-id", accessKeySecret: "lara-secret" });
+    expect(form.querySelector<HTMLInputElement>("input[name=accessKeyId]")!.value).toBe("");
+    expect(form.querySelector<HTMLInputElement>("input[name=accessKeySecret]")!.value).toBe("");
+    expect(container.textContent).not.toContain("lara-secret");
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain("protected");
+  });
+
+  it("keeps the probe explanation to the ZPK and Lara cards and shows a generic unclear-provider error", async () => {
+    await settings();
+    const cardText = (provider: string) => Array.from(container.querySelectorAll("article.cloud-provider")).find(card => card.getAttribute("aria-labelledby") === `provider-title-${provider}`)?.textContent ?? "";
+    expect(cardText("zpk")).toContain("probe once");
+    expect(cardText("lara")).toContain("probe once");
+    for (const provider of ["microsoft", "traduck", "deepl"]) expect(cardText(provider)).not.toContain("probe");
+    setProvider.mockResolvedValueOnce({ ok: false, error: { code: "CLOUD_SERVICE_ERROR" } } as never);
+    await act(async () => button("Use provider Microsoft Translator").click());
+    const alert = container.querySelector('[role="alert"]')?.textContent ?? "";
+    expect(alert).toContain("could not interpret");
+    expect(alert).not.toContain("probe");
+  });
+
+  it("restores keyboard focus to the ZPK editor button after a successful save", async () => {
+    await settings();
+    await act(async () => button("Connect ZPK").click());
+    const form = container.querySelector<HTMLFormElement>("#provider-form-zpk")!;
+    form.querySelector<HTMLInputElement>("input[name=applicationId]")!.value = "zpk-app";
+    form.querySelector<HTMLInputElement>("input[name=apiKey]")!.value = "zpk-key";
+    const submit = button("Save account", form);
+    submit.focus();
+    expect(document.activeElement).toBe(submit);
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(container.querySelector("#provider-form-zpk")).toBeNull();
+    expect(document.activeElement).toBe(button("Connect ZPK"));
+  });
+
+  it("offers newly configured providers in the reader translation picker", async () => {
+    view = { current: "zpk", providers: [
+      { provider: "microsoft", configured: true, availability: "available" },
+      { provider: "zpk", configured: true, availability: "available" },
+      { provider: "lara", configured: true, availability: "exhausted" },
+      { provider: "traduck", configured: true, availability: "unknown" },
+      { provider: "deepl", configured: false, availability: "unknown" },
+    ] };
+    await reader(); await openReaderSettings();
+    const control = container.querySelector<HTMLSelectElement>('[aria-label="Translation service"]')!;
+    expect(Array.from(control.options).map(option => option.value)).toEqual(["", "ollama", "microsoft", "zpk", "lara", "traduck"]);
+    expect(control.value).toBe("zpk");
+    expect(Array.from(control.options).find(option => option.value === "lara")?.textContent).toContain("(exhausted)");
+  });
+
   it("translates with cloud while Ollama is unloaded and attributes a fallback result as text", async () => {
     await reader(); await select();
     expect(modelStatus).not.toHaveBeenCalled(); expect(translate).not.toHaveBeenCalled();
@@ -345,4 +442,96 @@ describe("cloud provider controls", () => {
     expect(container.querySelector(".bubble-status")?.textContent).not.toContain("DeepL");
     expect(translate).toHaveBeenCalledTimes(1);
   });
+
+  it("explains each new provider allowance and its fixed probe", async () => {
+    await settings();
+    const text = container.textContent ?? "";
+    expect(text).toContain("600,000 characters per month");
+    expect(text).toContain("10,000 characters per month");
+    expect(text).toContain("200 requests per month");
+    const gutenTagCount = (text.match(/Guten Tag/g) ?? []).length;
+    expect(gutenTagCount).toBe(3);
+    expect(text.toLocaleLowerCase()).toContain("microsoft");
+    expect(text.toLocaleLowerCase()).toContain("deepl free");
+  });
+
+  it("collects the required credentials for ZPK and clears both secrets", async () => {
+    await settings();
+    await act(async () => button("Connect ZPK").click());
+    const form = container.querySelector<HTMLFormElement>("#provider-form-zpk")!;
+    const applicationId = form.querySelector<HTMLInputElement>("input[name=applicationId]")!;
+    const apiKey = form.querySelector<HTMLInputElement>("input[name=apiKey]")!;
+    expect(applicationId.required).toBe(true);
+    expect(apiKey.type).toBe("password");
+    applicationId.value = "zpk-app";
+    apiKey.value = "zpk-secret";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenCalledExactlyOnceWith({ provider: "zpk", applicationId: "zpk-app", apiKey: "zpk-secret" });
+    expect(applicationId.value).toBe("");
+    expect(apiKey.value).toBe("");
+    expect(container.textContent).not.toContain("zpk-secret");
+  });
+
+  it("collects both Lara access keys, clears them on storage failure, and restores focus on re-save", async () => {
+    saveProvider.mockResolvedValueOnce({ ok: false, error: { code: "CLOUD_STORAGE" } } as never);
+    await settings();
+    await act(async () => button("Connect Lara Translate").click());
+    const form = container.querySelector<HTMLFormElement>("#provider-form-lara")!;
+    const id = form.querySelector<HTMLInputElement>("input[name=accessKeyId]")!;
+    const secret = form.querySelector<HTMLInputElement>("input[name=accessKeySecret]")!;
+    id.value = "lara-id";
+    secret.value = "lara-secret";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenCalledExactlyOnceWith({ provider: "lara", accessKeyId: "lara-id", accessKeySecret: "lara-secret" });
+    expect(id.value).toBe("");
+    expect(secret.value).toBe("");
+    expect(container.textContent).not.toContain("lara-secret");
+    saveProvider.mockResolvedValueOnce({ ok: true, value: { ...view, providers: view.providers.map(account => account.provider === "lara" ? { ...account, configured: true } : account) } } as never);
+    id.value = "lara-id";
+    secret.value = "lara-secret";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenCalledTimes(2);
+    expect(document.activeElement).toBe(button("Replace credentials Lara Translate"));
+    expect(container.querySelector("#provider-form-lara")).toBeNull();
+  });
+
+  it("saves a Traduck API key and marks the provider usable", async () => {
+    await settings();
+    await act(async () => button("Connect Traduck").click());
+    const form = container.querySelector<HTMLFormElement>("#provider-form-traduck")!;
+    const apiKey = form.querySelector<HTMLInputElement>("input[name=apiKey]")!;
+    apiKey.value = "traduck-key";
+    await act(async () => form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })));
+    expect(saveProvider).toHaveBeenCalledExactlyOnceWith({ provider: "traduck", apiKey: "traduck-key" });
+    expect(apiKey.value).toBe("");
+    expect(container.textContent).not.toContain("traduck-key");
+  });
+
+  it("sends the fixed probe only through Check availability for each new provider without translating", async () => {
+    view = { current: "zpk", providers: [
+      { provider: "zpk", configured: true, availability: "unknown" },
+      { provider: "lara", configured: true, availability: "unknown" },
+      { provider: "traduck", configured: true, availability: "unknown" },
+    ] };
+    await settings();
+    for (const [label, name] of [
+      ["Check availability ZPK", "zpk"],
+      ["Check availability Lara Translate", "lara"],
+      ["Check availability Traduck", "traduck"],
+    ]) {
+      await act(async () => button(label).click());
+      expect(checkProvider).toHaveBeenLastCalledWith(name);
+    }
+    expect(translate).not.toHaveBeenCalled();
+    expect(setProvider).not.toHaveBeenCalled();
+  });
+
+  it("explains an unclear provider response generically without the provider-specific probe copy", () => {
+    const message = cloudTranslationMessage("CLOUD_SERVICE_ERROR");
+    expect(message).toContain("could not interpret");
+    expect(message).toContain("Check availability");
+    expect(message).not.toContain("fixed test phrase");
+    expect(message).not.toContain("probe");
+  });
+
 });

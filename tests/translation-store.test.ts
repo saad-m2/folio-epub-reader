@@ -6,6 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { LibraryRepository } from "../src/main/library";
 import { TranslationStore, type TranslationEncryption } from "../src/main/translation-store";
+import { CLOUD_PROVIDERS, ProviderConfigurationSchema, type ProviderConfiguration } from "../src/shared/translation";
 
 export function encryption(): TranslationEncryption {
   const key = randomBytes(32);
@@ -44,11 +45,47 @@ afterEach(() => {
 });
 
 describe("protected translation store", () => {
+  it.each<ProviderConfiguration>([
+    { provider: "zpk", applicationId: "private-app", apiKey: "private-key" },
+    { provider: "lara", accessKeyId: "private-id", accessKeySecret: "private-secret" },
+    { provider: "traduck", apiKey: "private-key" },
+  ])("protects and restores $provider credentials and exhaustion across restart", configuration => {
+    const { repository, file } = database();
+    const cryptor = encryption();
+    const store = new TranslationStore(repository, cryptor);
+    store.saveConfiguration(configuration);
+    store.setCurrent(configuration.provider);
+    store.setAvailability(configuration.provider, { state: "exhausted" });
+    expect(store.getConfiguration(configuration.provider)).toEqual(configuration);
+    expect(repository.readTranslationState()).not.toContain("private-");
+    expect(JSON.stringify(store.getView())).not.toContain("private-");
+    expect(repository.readTranslationSecret(configuration.provider)?.includes(Buffer.from("private-"))).toBe(false);
+    repository.close();
+    const reopened = new LibraryRepository(file);
+    repositories.push(reopened);
+    const restored = new TranslationStore(reopened, cryptor);
+    expect(restored.getConfiguration(configuration.provider)).toEqual(configuration);
+    expect(restored.getCurrent()).toBe(configuration.provider);
+    expect(restored.getAvailability(configuration.provider)).toEqual({ state: "exhausted" });
+    restored.removeConfiguration(configuration.provider);
+    expect(restored.getCurrent()).toBeNull();
+    expect(restored.getConfiguration(configuration.provider)).toBeUndefined();
+  });
+
+  it("requires complete provider-specific credentials and rejects caller-controlled destinations", () => {
+    for (const configuration of [
+      { provider: "zpk", apiKey: "key" },
+      { provider: "lara", apiKey: "key" },
+      { provider: "lara", accessKeyId: "id" },
+      { provider: "traduck", apiKey: "key", endpoint: "https://untrusted.invalid" },
+      { provider: "lara", accessKeyId: "id", accessKeySecret: "bad\nsecret" },
+    ]) expect(ProviderConfigurationSchema.safeParse(configuration).success).toBe(false);
+  });
   it("defaults to local and keeps configured secrets out of the public view and plaintext state", () => {
     const { repository } = database();
     const store = new TranslationStore(repository, encryption());
     expect(store.getCurrent()).toBe("ollama");
-    expect(store.getView().providers.map(provider => provider.provider)).toEqual(["microsoft", "deepl"]);
+    expect(store.getView().providers.map(provider => provider.provider)).toEqual(CLOUD_PROVIDERS);
     expect(store.getView().providers.every(provider => !provider.configured)).toBe(true);
     store.saveConfiguration({ provider: "microsoft", apiKey: "private-key", region: "westeurope" });
     expect(store.getCurrent()).toBe("ollama");
@@ -183,7 +220,7 @@ describe("retired-provider migration", () => {
     expect(store.getConfiguration("microsoft")).toEqual({ provider: "microsoft", apiKey: "microsoft-key", region: "westeurope" });
     expect(store.getConfiguration("deepl")).toEqual({ provider: "deepl", apiKey: "deepl-key" });
     expect(decrypt.mock.calls.every(([ciphertext]) => !ciphertext.equals(original.retired))).toBe(true);
-    expect(store.getView().providers.map(provider => provider.provider)).toEqual(["microsoft", "deepl"]);
+    expect(store.getView().providers.map(provider => provider.provider)).toEqual(CLOUD_PROVIDERS);
   });
 
   it.each(["ollama", "microsoft", "deepl", null] as const)("preserves a legacy current selection of %s and all supported allowance metadata", current => {

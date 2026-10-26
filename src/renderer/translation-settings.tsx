@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  CLOUD_PROVIDERS, PROVIDER_LABELS, ProviderConfigurationSchema,
+  CLOUD_PROVIDERS, PROVIDER_LABELS, ProviderConfigurationSchema, type ProviderConfiguration,
   type CloudProvider, type TranslationProvider, type TranslationProvidersView,
 } from "../shared/translation";
 import { cloudTranslationMessage } from "./translation-ui";
@@ -68,14 +68,20 @@ export function TranslationSettings({ onCurrentChange }: Props): React.ReactElem
     if (lock.current) return;
     const form = event.currentTarget;
     const fields = new FormData(form);
-    const config = {
-      provider, apiKey: String(fields.get("apiKey") ?? "").trim(),
-      ...(provider === "microsoft" && fields.get("region") ? { region: String(fields.get("region")).trim() } : {}),
-    };
+    const text = (name: string): string => String(fields.get(name) ?? "").trim();
+    let config: ProviderConfiguration;
+    if (provider === "zpk") {
+      config = { provider, applicationId: text("applicationId"), apiKey: text("apiKey") };
+    } else if (provider === "lara") {
+      config = { provider, accessKeyId: text("accessKeyId"), accessKeySecret: text("accessKeySecret") };
+    } else {
+      config = { provider, apiKey: text("apiKey"),
+        ...(provider === "microsoft" && fields.get("region") ? { region: text("region") } : { }) };
+    }
     // New secrets are write-only. Clear them even if validation/storage fails.
     form.reset();
     const parsed = ProviderConfigurationSchema.safeParse(config);
-    if (!parsed.success) { setFailure("Check the credential and region format, then enter your details again."); return; }
+    if (!parsed.success) { setFailure("Check every credential field you entered, including the region format, then enter your details again."); return; }
     void act(() => window.readerApi.saveTranslationProvider(parsed.data), `${PROVIDER_LABELS[provider]} account saved. Your current provider selection is unchanged.`, provider);
   }
 
@@ -105,11 +111,22 @@ export function TranslationSettings({ onCurrentChange }: Props): React.ReactElem
           </div>
         </div>
         {provider === "microsoft" && <p className="small muted">Use Microsoft Translator F0 with its enforced cutoff. Check availability sends a small fixed test phrase, never book text, and consumes a tiny amount of your allowance. It runs only when you press the button.</p>}
-        {provider === "deepl" && <p className="small muted">Use DeepL API Developer with its free cutoff, or an existing API Free account. Check availability reads usage without sending text.</p>}
+        {provider === "zpk" && <p className="small muted">Use ZPK without funded credit to stay within its 600,000 characters per month offer. If a translation reports an unclear problem, Leaf sends this fixed probe once automatically and treats a repeated unclear response as an exhausted allowance. Check availability sends the fixed test phrase ("Guten Tag."), never book text, and consumes a tiny amount of your allowance. It runs only when you press the button.</p>}
+        {provider === "lara" && <p className="small muted">Use the Lara Standard plan with its 10,000 characters per month free allowance. If a translation reports an unclear problem, Leaf sends this fixed probe once automatically and treats a repeated unclear response as an exhausted allowance. Check availability sends the fixed test phrase ("Guten Tag."), never book text, and consumes a tiny amount of your allowance. It runs only when you press the button.</p>}
+        {provider === "traduck" && <p className="small muted">Use the Traduck Free tier with its 200 requests per month. Check availability sends the fixed test phrase ("Guten Tag."), never book text, and consumes one request of your allowance. It runs only when you press the button.</p>}
+        {provider === "deepl" && <p className="small muted">Use the DeepL free cutoff with the API Developer plan, or an existing API Free account. Check availability reads usage without sending text.</p>}
         {editing === provider && <form key={provider} id={`provider-form-${provider}`} className="provider-form" onSubmit={event => save(event, provider)} autoComplete="off">
           <fieldset disabled={busy}>
             <legend className="sr-only">{PROVIDER_LABELS[provider]} credentials</legend>
-            <label>API key<input name="apiKey" type="password" required maxLength={512} autoComplete="new-password" spellCheck={false} /></label>
+            {provider === "zpk" && <>
+              <label>Application ID<input name="applicationId" required maxLength={512} autoComplete="off" spellCheck={false} /></label>
+              <label>API key<input name="apiKey" type="password" required maxLength={512} autoComplete="new-password" spellCheck={false} /></label>
+            </>}
+            {provider === "lara" && <>
+              <label>Access key ID<input name="accessKeyId" required maxLength={512} autoComplete="off" spellCheck={false} /></label>
+              <label>Access key secret<input name="accessKeySecret" type="password" required maxLength={512} autoComplete="new-password" spellCheck={false} /></label>
+            </>}
+            {(provider === "microsoft" || provider === "traduck" || provider === "deepl") && <label>API key<input name="apiKey" type="password" required maxLength={512} autoComplete="new-password" spellCheck={false} /></label>}
             {provider === "microsoft" && <label>Resource region (optional for global resources)<input name="region" maxLength={40} placeholder="e.g. westeurope" spellCheck={false} autoComplete="off" /></label>}
             <p className="small muted">Saved credentials are protected on this Windows device and cannot be shown again here. Connecting never translates or changes your current provider.</p>
             <button type="submit" className="btn primary">Save account</button>

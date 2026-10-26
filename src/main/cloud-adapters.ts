@@ -1,3 +1,4 @@
+import { createHash, createHmac } from "node:crypto";
 import { limits } from "../shared/contracts";
 import { ProviderConfigurationSchema, type Availability, type ProviderConfiguration } from "../shared/translation";
 import { CloudTranslationFailure, type CloudAdapters, type CloudFailureCode } from "./cloud-translation-types";
@@ -7,9 +8,13 @@ const MAX_OUTPUT_CHARACTERS = 20_000;
 const MICROSOFT_URL = "https://api.cognitive.microsofttranslator.com/translate?api-version=3.0&from=de&to=en&textType=plain";
 // A Check availability action may send this fixed phrase, never the registered selection.
 export const MICROSOFT_AVAILABILITY_PHRASE = "Guten Tag.";
+export const CLOUD_AVAILABILITY_PHRASE = "Guten Tag.";
 
 type MicrosoftConfiguration = Extract<ProviderConfiguration, { provider: "microsoft" }>;
 type DeepLConfiguration = Extract<ProviderConfiguration, { provider: "deepl" }>;
+type ZpkConfiguration = Extract<ProviderConfiguration, { provider: "zpk" }>;
+type LaraConfiguration = Extract<ProviderConfiguration, { provider: "lara" }>;
+type TraduckConfiguration = Extract<ProviderConfiguration, { provider: "traduck" }>;
 type JsonObject = Record<string, unknown>;
 type Reply = { status: number; data: unknown };
 type Options = { fetcher?: typeof fetch; timeoutMs?: number };
@@ -17,6 +22,29 @@ type Options = { fetcher?: typeof fetch; timeoutMs?: number };
 const object = (value: unknown): value is JsonObject => !!value && typeof value === "object" && !Array.isArray(value);
 const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0;
 const failure = (code: CloudFailureCode): never => { throw new CloudTranslationFailure(code); };
+// Only this internal error authorizes the owner's fixed-probe heuristic.
+class UnclearProviderFailure extends CloudTranslationFailure {
+  constructor() { super("service_error"); }
+}
+
+function checkNewProviderReply(reply: Reply): JsonObject {
+  if (reply.status === 401 || reply.status === 403) return failure("authentication");
+  if (reply.status === 429) return failure("rate_limited");
+  if (reply.status === 408 || reply.status === 504) return failure("timeout");
+  if ([400, 404, 405, 413, 415, 422].includes(reply.status)) return failure("invalid_request");
+  if (reply.status === 502 || reply.status === 503) return failure("service_error");
+  if (reply.status < 200 || reply.status >= 300) throw new UnclearProviderFailure();
+  return responseObject(reply);
+}
+
+function explicitZpkError(data: JsonObject): CloudFailureCode | undefined {
+  const errors = Array.isArray(data.errors) ? data.errors : [];
+  const codes = errors.filter(object).map(error => String(error.id ?? error.code ?? "").toUpperCase());
+  if (codes.some(code => /^(INVALID_API_KEY|INVALID_APPLICATION_ID|AUTHENTICATION_FAILED|UNAUTHORIZED|ACCESS_DENIED)$/.test(code))) return "authentication";
+  if (codes.some(code => /^(RATE_LIMITED|RATE_LIMIT_EXCEEDED|TOO_MANY_REQUESTS)$/.test(code))) return "rate_limited";
+  if (codes.some(code => /^(MISSING_REQUIRED_PARAMETER|INVALID_PARAMETER|INVALID_LANGUAGE|TEXT_TOO_LONG)$/.test(code))) return "invalid_request";
+  return undefined;
+}
 
 function configuration<T extends ProviderConfiguration["provider"]>(value: ProviderConfiguration, provider: T): Extract<ProviderConfiguration, { provider: T }> {
   const parsed = ProviderConfigurationSchema.safeParse(value);
@@ -90,7 +118,7 @@ export function createCloudAdapters(options: Options = {}): CloudAdapters {
   const fetcher = options.fetcher ?? fetch;
   const timeoutMs = options.timeoutMs ?? 30_000;
 
-  async function request(url: string, init: RequestInit, signal: AbortSignal): Promise<Reply> {
+  async function request(url: string, init: RequestInit, signal: AbortSignal, ndjson = false): Promise<Reply> {
     if (signal.aborted) return failure("cancelled");
     const controller = new AbortController();
     let timedOut = false;
@@ -107,8 +135,22 @@ export function createCloudAdapters(options: Options = {}): CloudAdapters {
         const response = await fetcher(url, { ...init, signal: controller.signal, redirect: "error" });
         const raw = await boundedResponse(response, controller.signal);
         let data: unknown;
-        try { data = JSON.parse(raw); } catch { data = undefined; }
+        try { data = JSON.parse(raw); } catch {
+          if (ndjson) {
+            try { data = raw.split(/\r?\n/).filter(line => line.trim()).map(line => JSON.parse(line)); }
+            catch { data = undefined; }
+          }
+        }
         if (controller.signal.aborted) return failure(timedOut ? "timeout" : "cancelled");
+        if (ndjson && response.ok && data !== undefined) {
+          const frames: unknown[] = Array.isArray(data) ? data : [data];
+          for (const frame of frames) {
+            if (!object(frame)) return failure("invalid_output");
+            if (typeof frame.status === "number" && (frame.status < 200 || frame.status >= 300)) return { status: frame.status, data: frame.data ?? frame };
+          }
+          const last = frames[frames.length - 1];
+          data = object(last) ? last.data ?? last : undefined;
+        }
         return { status: response.status, data };
       };
       return await Promise.race([operation(), aborted]);
@@ -139,7 +181,104 @@ export function createCloudAdapters(options: Options = {}): CloudAdapters {
     } };
   }
 
+  async function zpkTranslate(text: string, config: ZpkConfiguration, signal: AbortSignal) {
+    const reply = await request("https://zpk.systems/api/translate/text", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ application_id: config.applicationId, api_key: config.apiKey, texts: [{ text, source_language: "de", target_languages: ["en"] }] }),
+    }, signal);
+    const explicit = object(reply.data) && reply.data.success === false ? explicitZpkError(reply.data) : undefined;
+    if (explicit) return failure(explicit);
+    const data = checkNewProviderReply(reply);
+    if (data.success === false) throw new UnclearProviderFailure();
+    if (data.success !== true || !Array.isArray(data.results) || data.results.length !== 1 || !object(data.results[0]) || !object(data.results[0].translations)) return failure("invalid_output");
+    return output(data.results[0].translations.en);
+  }
+
+  async function laraTranslate(text: string, config: LaraConfiguration, signal: AbortSignal, isCurrent?: () => boolean) {
+    // Match the official SDK's v2 access-key authentication, without its retries.
+    const body = JSON.stringify({ id: config.accessKeyId });
+    const date = new Date().toUTCString();
+    const digest = createHash("md5").update(body).digest("base64");
+    const signature = createHmac("sha256", config.accessKeySecret).update(`POST\n/v2/auth\n${digest}\napplication/json\n${date}`).digest("base64");
+    const authReply = await request("https://api.laratranslate.com/v2/auth", {
+      method: "POST", headers: { "content-type": "application/json", "X-Lara-Date": date, "Content-MD5": digest, authorization: `Lara:${signature}` }, body,
+    }, signal);
+    let auth: JsonObject;
+    try { auth = checkNewProviderReply(authReply); }
+    catch (error) {
+      // Authentication is not a translation quota check. Do not turn an auth
+      // service outage into a diagnostic translation or inferred exhaustion.
+      if (error instanceof UnclearProviderFailure) return failure("service_error");
+      throw error;
+    }
+    if (typeof auth.token !== "string" || !auth.token || auth.token.length > 16_384 || /[\s\x00-\x1f\x7f]/.test(auth.token)) return failure("invalid_output");
+    if (signal.aborted || isCurrent?.() === false) return failure("cancelled");
+    const data = checkNewProviderReply(await request("https://api.laratranslate.com/v2/translate", {
+      method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${auth.token}`, "X-Lara-Date": new Date().toUTCString(), "X-No-Trace": "true" },
+      body: JSON.stringify({ q: text, source: "de-DE", target: "en-US", content_type: "text/plain", style: "faithful", reasoning: false, use_cache: false }),
+    }, signal, true));
+    return output(data.translation);
+  }
+
+  async function traduckTranslate(text: string, config: TraduckConfiguration, signal: AbortSignal) {
+    const reply = await request("https://traduck.com/api/v1/translate", {
+      method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${config.apiKey}` },
+      body: JSON.stringify({ text, source_lang: "de", target_lang: "en" }),
+    }, signal);
+    if (reply.status === 429 && object(reply.data) && object(reply.data.error) && reply.data.error.code === "quota_exceeded") return failure("exhausted");
+    return output(checkNewProviderReply(reply).translation);
+  }
+
+  async function probeAvailability(translate: () => Promise<{ text: string }>, assumeUnclear = false): Promise<Availability> {
+    try { await translate(); return { state: "available" }; }
+    catch (error) {
+      if ((error instanceof CloudTranslationFailure && error.code === "exhausted") || (assumeUnclear && error instanceof UnclearProviderFailure)) return { state: "exhausted" };
+      throw error;
+    }
+  }
+
+  async function withUnclearProbe(translate: (text: string) => Promise<{ text: string }>, text: string, signal: AbortSignal, isCurrent?: () => boolean) {
+    try { return await translate(text); }
+    catch (error) {
+      if (!(error instanceof UnclearProviderFailure)) throw error;
+      if (signal.aborted || isCurrent?.() === false) return failure("cancelled");
+      const availability = await probeAvailability(() => translate(CLOUD_AVAILABILITY_PHRASE), true);
+      if (availability.state === "exhausted") return failure("exhausted");
+      // A successful diagnostic never replaces or resubmits the selected text.
+      throw error;
+    }
+  }
+
   return {
+    zpk: {
+      async translate(text, value, signal, isCurrent) {
+        validateText(text);
+        const config = configuration(value, "zpk");
+        return withUnclearProbe(phrase => zpkTranslate(phrase, config, signal), text, signal, isCurrent);
+      },
+      async checkAvailability(value, signal) {
+        const config = configuration(value, "zpk");
+        return probeAvailability(() => zpkTranslate(CLOUD_AVAILABILITY_PHRASE, config, signal), true);
+      },
+    },
+    lara: {
+      async translate(text, value, signal, isCurrent) {
+        validateText(text);
+        const config = configuration(value, "lara");
+        return withUnclearProbe(phrase => laraTranslate(phrase, config, signal, isCurrent), text, signal, isCurrent);
+      },
+      async checkAvailability(value, signal) {
+        const config = configuration(value, "lara");
+        return probeAvailability(() => laraTranslate(CLOUD_AVAILABILITY_PHRASE, config, signal), true);
+      },
+    },
+    traduck: {
+      async translate(text, value, signal) { validateText(text); return traduckTranslate(text, configuration(value, "traduck"), signal); },
+      async checkAvailability(value, signal) {
+        const config = configuration(value, "traduck");
+        return probeAvailability(() => traduckTranslate(CLOUD_AVAILABILITY_PHRASE, config, signal));
+      },
+    },
     microsoft: {
       async translate(text, value, signal) { validateText(text); return microsoftTranslate(text, configuration(value, "microsoft"), signal); },
       async checkAvailability(value, signal) {

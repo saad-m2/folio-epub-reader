@@ -14,6 +14,7 @@ export function cloudTranslationMessage(code: string): string {
     case "CLOUD_TIMEOUT": return "The cloud provider took too long. Retry or choose another provider in Settings.";
     case "CLOUD_CANCELLED": return "This translation was cancelled. Select the text again to translate it.";
     case "CLOUD_INVALID_OUTPUT": return "The provider did not return usable text. You can retry or choose another provider in Settings.";
+    case "CLOUD_SERVICE_ERROR": return "The provider responded in a way Leaf could not interpret. Retry or run Check availability in Settings.";
     case "CLOUD_NOT_CONFIGURED": return "Choose a configured translation provider in Settings before translating.";
     case "CLOUD_STORAGE": return "Saved credentials could not be protected or opened on this device. Check your provider settings and try again.";
     case "CLOUD_INVALID_REQUEST": return "Check the provider details and selection size, then try again.";

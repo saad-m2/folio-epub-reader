@@ -97,7 +97,10 @@ export class TranslationCoordinator {
           attempted.add(provider);
           this.progress = { phase: fallback ? "fallback" : "translating", provider };
           try {
-            const result = await this.adapters[provider].translate(text, configuration, operation.controller.signal);
+            const result = await this.adapters[provider].translate(text, configuration, operation.controller.signal, () => {
+              this.ensureValid(operation, valid);
+              return true;
+            });
             this.ensureValid(operation, valid);
             if (typeof result.text !== "string" || !result.text.trim() || result.text.length > 20_000) throw new CloudTranslationFailure("invalid_output");
             this.store.setAvailability(provider, { state: "available" });
