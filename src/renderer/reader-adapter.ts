@@ -473,7 +473,11 @@ export class ReaderAdapter {
       style.id = "reader-user-v1";
       document.head.append(style);
     }
-    style.textContent = this.currentStylesheet + (this.mode === "paginated" ? PAGINATED_CHAPTER_BREAK : "");
+    // Scrolled contents.size() gives the body the full frame width. Let it
+    // shrink around our horizontal margins rather than overflow to the right.
+    style.textContent = this.currentStylesheet + (this.mode === "paginated"
+      ? PAGINATED_CHAPTER_BREAK
+      : " body { width: auto !important; }");
   }
 
   private async style(appearance: Appearance): Promise<string> {

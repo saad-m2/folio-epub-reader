@@ -11,6 +11,8 @@
   --ink: #1c291b;
   --danger: #e7a798;
   --radius: 10px;
+  --font-body: 14px;
+  --font-help: 13px;
   font-family:
     Segoe UI,
     Arial,
@@ -140,13 +142,6 @@ svg.ico {
 .side-bottom {
   margin-top: auto;
 }
-.local-note {
-  border-top: 1px solid var(--line);
-  padding: 20px 12px 0;
-  font-size: 11px;
-  color: var(--muted);
-  line-height: 1.7;
-}
 .dot {
   width: 6px;
   height: 6px;
@@ -154,9 +149,6 @@ svg.ico {
   border-radius: 50%;
   background: var(--sage);
   margin-right: 7px;
-}
-.side-bottom .side-nav {
-  margin-bottom: 24px;
 }
 .workspace {
   flex: 1;
@@ -222,7 +214,7 @@ p {
   color: var(--muted);
 }
 .small {
-  font-size: 12px;
+  font-size: var(--font-help);
 }
 .page-heading {
   display: flex;
@@ -233,7 +225,7 @@ p {
 }
 .page-heading p {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: var(--font-body);
   color: var(--muted);
 }
 .btn {
@@ -555,19 +547,25 @@ p {
   margin: 0 auto;
 }
 .settings-main > .muted {
-  font-size: 12px;
+  font-size: var(--font-body);
 }
 .tabs {
   display: flex;
-  gap: 24px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-top: 30px;
   border-bottom: 1px solid var(--line);
 }
 .tabs button {
-  padding: 14px 1px;
+  padding: 12px 16px;
+  border-radius: 6px 6px 0 0;
+  line-height: 1.5;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-body);
   border-bottom: 2px solid transparent;
+}
+.tabs button:focus-visible {
+  outline-offset: -3px;
 }
 .tabs button.active {
   color: var(--sage);
@@ -588,7 +586,7 @@ p {
   padding: 24px;
 }
 .card p {
-  font-size: 12px;
+  font-size: var(--font-body);
   color: var(--muted);
   margin: 8px 0 20px;
 }
@@ -604,12 +602,12 @@ p {
   padding-bottom: 0;
 }
 .form-row label {
-  font-size: 12px;
+  font-size: var(--font-help);
 }
 .form-row small {
   display: block;
   color: var(--muted);
-  font-size: 10px;
+  font-size: var(--font-help);
   margin-top: 5px;
   line-height: 1.5;
 }
@@ -725,7 +723,7 @@ p {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  font-size: 11px;
+  font-size: var(--font-help);
   color: var(--muted);
   line-height: 1.6;
   margin-top: 20px;
@@ -756,7 +754,7 @@ p {
   margin-bottom: 7px;
 }
 .font-description p {
-  font-size: 11px;
+  font-size: var(--font-help);
   color: var(--muted);
   margin: 0;
 }
@@ -781,7 +779,7 @@ p {
 }
 .status-box p {
   margin: 4px 0 0;
-  font-size: 11px;
+  font-size: var(--font-help);
 }
 .setup-step {
   display: flex;
@@ -801,11 +799,11 @@ p {
 }
 .setup-step p {
   margin: 5px 0;
-  font-size: 11px;
+  font-size: var(--font-help);
   color: var(--muted);
 }
 code {
-  font-size: 10px;
+  font-size: var(--font-help);
   display: block;
   padding: 12px;
   background: #151915;
@@ -1031,7 +1029,7 @@ code {
 .empty p {
   max-width: 330px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--font-body);
   margin: 3px 0 24px;
 }
 .modal-icon {
@@ -1070,7 +1068,7 @@ code {
   border-radius: 5px;
   background: #313b2b;
   color: #c2d2b4;
-  font-size: 11px;
+  font-size: var(--font-help);
   line-height: 1.7;
 }
 .notice.warning {
@@ -1102,7 +1100,7 @@ code {
 }
 .settings-panel-note {
   margin-top: 25px;
-  font-size: 11px;
+  font-size: var(--font-help);
   color: var(--muted);
   line-height: 1.7;
 }
@@ -1219,8 +1217,7 @@ code {
   }
   .side-label,
   .side-nav button .nav-name,
-  .side-nav .count,
-  .local-note {
+  .side-nav .count {
     display: none;
   }
   .side-nav button {
@@ -1255,7 +1252,7 @@ code {
     width: 19px;
   }
   .page-heading p {
-    font-size: 11px;
+    font-size: var(--font-help);
   }
   .book-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1318,11 +1315,11 @@ code {
     padding: 26px 20px;
   }
   .tabs {
-    gap: 15px;
-    flex-wrap: wrap;
+    gap: 4px;
   }
   .tabs button {
-    font-size: 11px;
+    padding: 10px 12px;
+    font-size: var(--font-help);
   }
   .card {
     padding: 18px;

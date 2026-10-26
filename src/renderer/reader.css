@@ -117,6 +117,13 @@
   overflow: hidden;
   width: 100%;
 }
+/* Keep epub.js scrolling active without reserving an off-center scrollbar gutter. */
+.reader-host .epub-container {
+  scrollbar-width: none;
+}
+.reader-host .epub-container::-webkit-scrollbar {
+  display: none;
+}
 .reader-footer {
   position: absolute;
   bottom: 0;
@@ -305,7 +312,7 @@
   font-size: 11px;
 }
 .bubble-status {
-  font-size: 10px;
+  font-size: var(--font-help);
   color: var(--muted);
 }
 .translation-modal-backdrop {

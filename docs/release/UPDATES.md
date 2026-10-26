@@ -4,7 +4,7 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.3.1
+## Install version 0.3.2
 
 Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.3; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
@@ -29,6 +29,14 @@ The repository must be public and have published, non-prerelease GitHub Releases
 ## Developer release procedure
 
 For integration, versioning, packaging, publication, and installed-update verification, follow the [release workflow](../workflow/RELEASE-WORKFLOW.md).
+
+## 0.3.2 changes and qualification
+
+Improves app readability with larger explanatory text, larger library titles/authors/progress/details, and padded Settings tab hover areas. Removes the sidebar promotional footer. Scroll-mode reading hides the publication scrollbar while retaining scrolling and corrects the book body's width so horizontal margins are equal.
+
+The owner approved the isolated Electron preview on 2026-10-26. Final 0.3.2 candidate type checking, all 322 tests across 24 files, and `pnpm package:release` passed, including production build, SBOM/license checks, zero-advisory dependency audit, Squirrel installer creation, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. The development trusted-publication proof and all 12 development runtime fixtures also passed. Real Electron inspection covered Settings keyboard navigation/focus and narrow layouts, library typography/long titles at normal and narrow widths, and scroll-mode alignment and wheel scrolling at 1200px and 600px widths.
+
+Hosted older-installed-version download/restart, real translation-provider/Ollama checks, Narrator, and physical Windows display-scaling checks remain unrun for this release; the existing personal-use qualification scope remains in effect.
 
 ## 0.3.1 changes and qualification
 

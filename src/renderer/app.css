@@ -153,16 +153,50 @@ h1:focus {
   overflow: hidden;
 }
 .book-author {
-  font-size: 11px;
+  font-size: var(--font-help);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .progress-row {
-  font-size: 10px;
+  font-size: 12px;
+}
+.book-title {
+  font-size: 15px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 2.8em;
+}
+.library-main .btn,
+.details .btn,
+.details .author,
+.resume-copy p {
+  font-size: var(--font-body);
+}
+.library-main .eyebrow,
+.detail-head,
+.detail-label {
+  font-size: 12px;
+}
+.library-main .section-heading h2 {
+  font-size: 17px;
+}
+.library-main .section-heading span,
+.detail-progress,
+.detail-chapter,
+.metadata,
+.metadata span {
+  font-size: var(--font-help);
+}
+.metadata,
+.detail-chapter {
+  line-height: 1.6;
 }
 .library-footer {
-  font-size: 11px;
+  font-size: var(--font-help);
   color: var(--muted);
   line-height: 1.6;
 }
@@ -173,7 +207,7 @@ h1:focus {
   overflow-wrap: anywhere;
 }
 .file-note {
-  font-size: 11px;
+  font-size: var(--font-help);
 }
 .file-note p {
   margin: 7px 0 0;
@@ -195,7 +229,7 @@ h1:focus {
   min-width: 0;
 }
 .form-row {
-  font-size: 12px;
+  font-size: var(--font-help);
 }
 select {
   background: #181d19;
@@ -346,7 +380,7 @@ select {
   color: var(--text);
   border: 1px solid #55664a;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--font-help);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -370,7 +404,7 @@ select {
   width: min(460px, calc(100vw - 40px));
 }
 .app-dialog p {
-  font-size: 12px;
+  font-size: var(--font-body);
   color: var(--muted);
   margin: 12px 0 18px;
 }
@@ -440,7 +474,11 @@ select {
     display: none;
   }
   .page-heading .btn {
-    font-size: 11px;
+    font-size: var(--font-help);
+  }
+  .section-heading {
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .book-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

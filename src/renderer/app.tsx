@@ -421,12 +421,6 @@ export function App(): React.ReactElement {
                   <span className="nav-name">Settings</span>
                 </button>
               </nav>
-              <div className="local-note">
-                <span className="dot" />
-                Made for your books.
-                <br />
-                At home on your device.
-              </div>
             </div>
           </aside>
           <div className="workspace">

@@ -5,7 +5,10 @@ The approved direction is Design A, Quiet bookshelf, implemented in the live Rea
 ## Current visual rules
 
 - Library and Settings use fixed charcoal surfaces, muted sage actions, thin borders, restrained corners, and book-led hierarchy.
+- Explanatory copy uses 14px body text or 13px supporting text, including at narrow widths. Settings tabs have padded, rounded hover areas and retain a sage selection underline and visible keyboard focus.
+- Library book titles use 15px text with up to two lines; authors and book details use readable supporting text. The sidebar ends with Settings, without a promotional footer.
 - Reader themes are System, Light, Dark, and Sepia, independent of the fixed-dark app shell.
+- Scroll-mode reading hides the publication scrollbar without disabling scrolling, and fits the book body between equal horizontal reading margins.
 - Cover grid, selected-book details, and continue-reading information use actual library state. Narrow layouts use a compact details dialog.
 - Reader controls, TOC, appearance, and translation surfaces share the visual system. Keep focus visible, contain focus in modal overlays, and restore it on dismissal.
 - The general **Reader settings** panel groups appearance with translation-service selection/status and local Load/Unload. Keep cloud credential setup in main Settings and avoid separate top-right translation controls.
