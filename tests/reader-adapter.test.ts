@@ -587,7 +587,32 @@ describe("ReaderAdapter", () => {
       expect(text.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, button: 2 }))).toBe(true);
     }
     expect(interactions).not.toHaveBeenCalled();
+    const selection = frame.contentWindow!.getSelection()!;
+    const selectedRange = caret.cloneRange();
+    selectedRange.selectNodeContents(text);
+    selection.addRange(selectedRange);
+    // A drag that finishes in the margin must keep the selection, not navigate.
+    text.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 950, clientY: 30 }));
+    text.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 990, clientY: 60 }));
+    expect(interactions).not.toHaveBeenCalled();
+    expect(selection.isCollapsed).toBe(false);
+    // A separate blank-area click must work even if a selection was active.
+    text.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, clientX: 990, clientY: 60 }));
+    text.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 990, clientY: 60 }));
+    expect(interactions).toHaveBeenCalledExactlyOnceWith({ kind: "reader-click", zone: "right" });
+    expect(selection.isCollapsed).toBe(true);
+    interactions.mockClear();
+    // Outer epub.js containers are outside the publication iframe.
+    const surface = document.createElement("div");
+    host.appendChild(surface);
+    for (const [clientX, zone] of [[10, "left"], [990, "right"], [500, "center"]] as const) {
+      surface.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX }));
+      expect(interactions).toHaveBeenLastCalledWith({ kind: "reader-click", zone });
+    }
     await adapter.close();
+    interactions.mockClear();
+    host.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: 990 }));
+    expect(interactions).not.toHaveBeenCalled();
   });
 
   it("intercepts external links and emits frame navigation input", async () => {

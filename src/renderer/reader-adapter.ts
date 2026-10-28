@@ -137,6 +137,12 @@ export class ReaderAdapter {
   private interactionListeners = new Set<(interaction: ReaderInteraction) => void>();
   private externalLinkListeners = new Set<(url: string) => void>();
   private frameCleanups = new Map<Document, () => void>();
+  private readonly onHostClick = (event: MouseEvent): void => {
+    if (!this.book || event.button !== 0) return;
+    this.selectionDocument?.getSelection()?.removeAllRanges();
+    this.clearSelection();
+    this.emitReaderClick(event.clientX);
+  };
 
   constructor(private readonly host: HTMLElement) {}
 
@@ -174,6 +180,7 @@ export class ReaderAdapter {
 
   async open(input: { archiveBytes: ArrayBuffer; mode: ReaderMode; pageLayout?: PageLayout; appearance: Appearance; initialLocation?: ReaderLocation }): Promise<ReaderSnapshot> {
     await this.close();
+    this.host.addEventListener("click", this.onHostClick);
     const operation = ++this.operation;
     this.archiveBytes = input.archiveBytes;
     let openedBook: Book | undefined;
@@ -269,6 +276,7 @@ export class ReaderAdapter {
   }
 
   async close(): Promise<void> {
+    this.host.removeEventListener("click", this.onHostClick);
     ++this.operation;
     ++this.requestedLayout;
     this.clearSelection();
@@ -335,10 +343,20 @@ export class ReaderAdapter {
     this.setSelection({ text, ...(cfi && cfi.length <= MAX_SELECTION_CFI_LENGTH ? { cfi } : {}), rects }, document);
   }
 
+  private emitReaderClick(clientX: number): void {
+    const rect = this.host.getBoundingClientRect();
+    const ratio = (clientX - rect.left) / (rect.width || 1);
+    this.emitInteraction({ kind: "reader-click", zone: ratio < 0.2 ? "left" : ratio > 0.8 ? "right" : "center" });
+  }
+
   private attachFrame(contents: FrameContents, operation: number): void {
     const document = contents.document;
     if (!document || operation !== this.operation) return;
     this.frameCleanups.get(document)?.();
+    let press: { x: number; y: number } | undefined;
+    const onMouseDown = (event: MouseEvent): void => {
+      press = event.button === 0 ? { x: event.clientX, y: event.clientY } : undefined;
+    };
     const onSelectionChange = (): void => {
       if (operation === this.operation) this.captureSelection(contents);
     };
@@ -364,13 +382,15 @@ export class ReaderAdapter {
       const frame = document.defaultView?.frameElement as HTMLElement | null;
       if (event.button !== 0 || !frame || !this.host.contains(frame)) return;
       const selection = contents.window?.getSelection() ?? document.getSelection();
-      if (selection && !selection.isCollapsed) return;
+      const dragged = press && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 4;
+      press = undefined;
+      if (selection && !selection.isCollapsed && dragged) return;
       if (isTextAtPoint(document, event.clientX, event.clientY)) return;
+      selection?.removeAllRanges();
+      this.clearSelection();
       const frameRect = frame.getBoundingClientRect();
-      const hostRect = this.host.getBoundingClientRect();
       const scaleX = frame.clientWidth ? frameRect.width / frame.clientWidth : 1;
-      const ratio = (frameRect.left + event.clientX * scaleX - hostRect.left) / (hostRect.width || 1);
-      this.emitInteraction({ kind: "reader-click", zone: ratio < 0.2 ? "left" : ratio > 0.8 ? "right" : "center" });
+      this.emitReaderClick(frameRect.left + event.clientX * scaleX);
     };
     const onKeyDown = (event: KeyboardEvent): void => {
       if (operation !== this.operation || event.altKey || event.ctrlKey || event.metaKey) return;
@@ -391,6 +411,7 @@ export class ReaderAdapter {
       this.emitInteraction({ kind: "wheel", deltaY: event.deltaY });
     };
     document.addEventListener("selectionchange", onSelectionChange);
+    document.addEventListener("mousedown", onMouseDown, true);
     document.addEventListener("click", onClick, true);
     document.addEventListener("auxclick", onClick, true);
     document.addEventListener("keydown", onKeyDown);
@@ -403,6 +424,7 @@ export class ReaderAdapter {
     contents.window?.addEventListener("resize", refreshSelection);
     this.frameCleanups.set(document, () => {
       document.removeEventListener("selectionchange", onSelectionChange);
+      document.removeEventListener("mousedown", onMouseDown, true);
       document.removeEventListener("click", onClick, true);
       document.removeEventListener("auxclick", onClick, true);
       document.removeEventListener("keydown", onKeyDown);
