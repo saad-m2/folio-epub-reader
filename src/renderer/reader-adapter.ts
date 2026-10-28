@@ -26,6 +26,18 @@ const MAX_SELECTION_CFI_LENGTH = 4000;
 const timeout = <T>(promise: Promise<T>, stage = "readiness"): Promise<T> => withTimeout(promise, `Reader ${stage} timed out`);
 const withoutFragment = (href: string): string => href.split("#")[0] ?? href;
 const bodyOf = (document: Document): Element | null => document.body ?? document.querySelector("body");
+function isTextAtPoint(document: Document, x: number, y: number): boolean {
+  const caret = document.caretRangeFromPoint?.(x, y);
+  const node = caret?.startContainer;
+  if (node?.nodeType !== 3 || !node.textContent?.trim()) return false;
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  // Caret hit testing snaps to nearby text even in a margin. Check the actual
+  // text fragments so blank space still supports reader click navigation.
+  return Array.from(range.getClientRects()).some(rect =>
+    rect.width > 0 && rect.height > 0 &&
+    x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+}
 export function ensurePublicationHead(document: Document): void {
   if (document.getElementsByTagName("head").length) return;
   const root = document.documentElement;
@@ -353,6 +365,7 @@ export class ReaderAdapter {
       if (event.button !== 0 || !frame || !this.host.contains(frame)) return;
       const selection = contents.window?.getSelection() ?? document.getSelection();
       if (selection && !selection.isCollapsed) return;
+      if (isTextAtPoint(document, event.clientX, event.clientY)) return;
       const frameRect = frame.getBoundingClientRect();
       const hostRect = this.host.getBoundingClientRect();
       const scaleX = frame.clientWidth ? frameRect.width / frame.clientWidth : 1;

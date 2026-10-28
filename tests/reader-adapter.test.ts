@@ -549,6 +549,47 @@ describe("ReaderAdapter", () => {
     expect(adapter.getSelection()).toBeUndefined();
   });
 
+  it.each(["paginated", "continuous"] as const)("reserves text clicks for native interactions in %s mode", async (mode) => {
+    const mockBook = createMockBook();
+    vi.doMock("epubjs", () => ({ default: vi.fn().mockReturnValue(mockBook) }));
+    const { ReaderAdapter } = await import("../src/renderer/reader-adapter");
+    const adapter = new ReaderAdapter(host);
+    await adapter.open({ archiveBytes: new ArrayBuffer(0), mode, appearance: { theme: "light", fontSize: 16, margin: 40, lineHeight: 1.5, paragraphSpacing: 0, fontFamily: "Georgia" } });
+    const frame = document.createElement("iframe");
+    host.appendChild(frame);
+    const doc = frame.contentDocument!;
+    doc.body.innerHTML = '<p>Book <em>text</em></p>';
+    mockBook.renderTo().hooks.content.register.mock.calls[0][0]({ document: doc, window: frame.contentWindow! });
+    vi.spyOn(host, "getBoundingClientRect").mockReturnValue({ left: 0, width: 1000 } as DOMRect);
+    vi.spyOn(frame, "getBoundingClientRect").mockReturnValue({ left: 0, width: 1000 } as DOMRect);
+    const interactions = vi.fn();
+    adapter.subscribeInteraction(interactions);
+    const text = doc.querySelector("em")!;
+    const caret = doc.createRange();
+    caret.setStart(text.firstChild!, 1);
+    Object.defineProperty(doc, "caretRangeFromPoint", { value: vi.fn(() => caret) });
+    let rects: DOMRect[] = [];
+    vi.spyOn(doc, "createRange").mockImplementation(() => ({ selectNodeContents: vi.fn(), getClientRects: () => rects }) as unknown as Range);
+    for (const [x, zone] of [[50, "left"], [500, "center"], [950, "right"]] as const) {
+      rects = [{ left: x - 10, right: x + 10, top: 20, bottom: 40, width: 20, height: 20 } as DOMRect];
+      for (const detail of [1, 2, 3]) {
+        const click = new MouseEvent("click", { bubbles: true, cancelable: true, clientX: x, clientY: 30, detail });
+        expect(text.dispatchEvent(click)).toBe(true);
+        expect(click.defaultPrevented).toBe(false);
+      }
+      expect(interactions).not.toHaveBeenCalled();
+      // The caret API also returns nearby text for blank space below a line.
+      text.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: x, clientY: 60 }));
+      expect(interactions).toHaveBeenCalledExactlyOnceWith({ kind: "reader-click", zone });
+      interactions.mockClear();
+    }
+    for (const type of ["mousedown", "mousemove", "mouseup", "contextmenu", "auxclick"]) {
+      expect(text.dispatchEvent(new MouseEvent(type, { bubbles: true, cancelable: true, button: 2 }))).toBe(true);
+    }
+    expect(interactions).not.toHaveBeenCalled();
+    await adapter.close();
+  });
+
   it("intercepts external links and emits frame navigation input", async () => {
     const mockBook = createMockBook();
     vi.doMock("epubjs", () => ({ default: vi.fn().mockReturnValue(mockBook) }));

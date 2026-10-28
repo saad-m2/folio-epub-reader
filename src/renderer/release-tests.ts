@@ -47,6 +47,33 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
   host.style.cssText = "position:fixed;inset:0;z-index:99999;background:#fff;";
   document.body.append(host);
   const adapter = new ReaderAdapter(host);
+  const checkTextClicks = (): void => {
+    const doc = host.querySelector("iframe")!.contentDocument!;
+    const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    let node: Node | null;
+    let checked = false;
+    let readerClicks = 0;
+    const unsubscribe = adapter.subscribeInteraction(interaction => {
+      if (interaction.kind === "reader-click") readerClicks++;
+    });
+    try {
+      while ((node = walker.nextNode())) {
+        if (!node.textContent?.trim() || node.parentElement?.closest("a, style, script")) continue;
+        const range = doc.createRange();
+        range.selectNodeContents(node);
+        const rect = Array.from(range.getClientRects()).find(rect => rect.width > 2 && rect.height > 2 && rect.left >= 0 && rect.top >= 0 && rect.right <= doc.defaultView!.innerWidth && rect.bottom <= doc.defaultView!.innerHeight);
+        if (!rect) continue;
+        for (const detail of [1, 2, 3]) {
+          const click = new MouseEvent("click", { bubbles: true, cancelable: true, clientX: rect.left + 1, clientY: rect.top + rect.height / 2, detail });
+          requireCheck(node.parentElement!.dispatchEvent(click), "native text click prevented");
+        }
+        requireCheck(readerClicks === 0, "text click triggered reader controls");
+        checked = true;
+        break;
+      }
+      requireCheck(checked, "no visible text for click regression");
+    } finally { unsubscribe(); }
+  };
   const liveBlobs = new Set<string>();
   const create = URL.createObjectURL.bind(URL),
     revoke = URL.revokeObjectURL.bind(URL);
@@ -110,6 +137,7 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
         });
       await paint();
       const openMs = performance.now() - start;
+      checkTextClicks();
       hasNavigation = snapshot.hasNavigation;
       requireCheck(
         host
@@ -167,6 +195,7 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
         requireCheck(Number.isFinite(columnWidth) && (double ? columnWidth < host.clientWidth * 0.6 : columnWidth > host.clientWidth * 0.8), "wrong paginated column width");
       };
       checkColumns(false);
+      checkTextClicks();
       stage = "next page";
       start = performance.now();
       await adapter.next();
@@ -178,6 +207,7 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
       await adapter.setPageLayout("double", appearance);
       await paint();
       checkColumns(host.clientWidth >= 800);
+      checkTextClicks();
       await adapter.next();
       await adapter.previous();
       stage = "single-page layout";

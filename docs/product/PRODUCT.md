@@ -236,6 +236,7 @@ Clicking the central reading area reveals or hides reader controls rather than t
 ### 8.7 Standard text interaction
 
 - Users can select text in the book.
+- Clicking directly on book text leaves native text selection available, including double-clicking a word, without turning pages or toggling controls. Reader click zones apply to blank space around the text.
 - Standard Windows keyboard shortcuts should work where applicable.
 - Right-clicking selected text exposes the normal Windows text-selection actions.
 - AI-specific actions do not replace the standard right-click behavior.
