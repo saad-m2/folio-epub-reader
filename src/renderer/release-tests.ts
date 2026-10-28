@@ -209,6 +209,20 @@ window.releaseTest = async (bytes, expected, cycles, restore) => {
           );
         if (!themes.includes(theme)) themes.push(theme);
       }
+      stage = "custom background and font colors";
+      const customAppearance = { ...appearance, theme: "custom" as const, backgroundColor: "#173c69", fontColor: "#e1d5b8" };
+      for (const mode of ["continuous", "paginated"] as const) {
+        await adapter.setMode(mode, customAppearance);
+        await paint();
+        const frame = host.querySelector("iframe")!;
+        const style = frame.contentWindow!.getComputedStyle(frame.contentDocument!.body);
+        requireCheck(style.backgroundColor === "rgb(23, 60, 105)" && style.color === "rgb(225, 213, 184)", `custom colors failed in ${mode}`);
+        for (const element of frame.contentDocument!.querySelectorAll("p, h1, h2, h3, span, a")) {
+          requireCheck(frame.contentWindow!.getComputedStyle(element).color === "rgb(225, 213, 184)", `book-styled text ignored custom font color in ${mode}`);
+        }
+        await adapter.next();
+        await adapter.previous();
+      }
       location = adapter.captureLocation();
       stage = "close and resource cleanup";
       requireCheck(location.href, "no restorable location");

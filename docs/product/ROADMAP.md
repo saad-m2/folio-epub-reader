@@ -40,6 +40,10 @@ The old request to choose and implement a visual direction is superseded by appr
 
 Settings and in-book appearance controls now offer a color wheel, brightness slider, hex input, and preview. Applying a color saves it globally across restarts and both reading modes, with automatically contrasting text and underlined links. Presets retain the last custom color. See [reading appearance](PRODUCT.md#92-application-and-reader-themes) for behavior and the root [usage guide](../../README.md#choose-a-reading-background) for controls.
 
+2026-10-28 font-color extension, included in 0.3.3: adds a **Background / Font** selector to the same wheel, combined preview, persistent custom font/link color, and an automatic-font-color reset. Presets keep their own palette and remember custom colors. The owner approved the isolated preview.
+
+Verification on 2026-10-28: type checking, all 324 unit/regression tests, production build, isolated trusted-publication proof, and all 12 development runtime fixtures passed. The corpus checks the custom background/font pair and book-styled text in both reading modes. Real Electron UI checks covered Settings and reader controls, pointer/keyboard wheel input, narrow layouts, automatic reset, mode switching, restart persistence, and Escape/focus restoration. The final 0.3.3 candidate also passed the full Windows release pipeline, including all 12 isolated packaged runtime fixtures; see [release qualification](../release/QUALIFICATION.md#033-custom-font-color) for scope and unrun checks.
+
 Verification on 2026-10-22: type checking, all 157 unit/regression tests, and the production build passed. Settings was inspected in a browser with a mocked desktop API; this does not establish packaged Windows or Narrator qualification.
 
 ## In-app update discovery: implemented

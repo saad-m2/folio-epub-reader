@@ -62,6 +62,12 @@ describe("ReaderAdapter", () => {
     await adapter.setMode("paginated", { ...appearance, backgroundColor: "#ffdd99" });
     expect(renderedStyles(mockBook.renderTo())).toContain("background: #ffdd99 !important");
     expect(renderedStyles(mockBook.renderTo())).toContain("color: #000000 !important");
+    await adapter.applyAppearance({ ...appearance, fontColor: "#e1d5b8" });
+    expect(renderedStyles(mockBook.renderTo())).toContain("color: #e1d5b8 !important");
+    expect(renderedStyles(mockBook.renderTo())).toContain("body * { color: #e1d5b8 !important; }");
+    expect(renderedStyles(mockBook.renderTo())).toContain("a { color: #e1d5b8 !important; text-decoration: underline !important;");
+    await adapter.setMode("continuous", { ...appearance, fontColor: "#e1d5b8" });
+    expect(renderedStyles(mockBook.renderTo())).toContain("color: #e1d5b8 !important");
     await adapter.close();
   });
 

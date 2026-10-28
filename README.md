@@ -16,11 +16,11 @@ In **Settings → Reading appearance**, or the **Reading appearance** controls i
 
 ## Choose a reading background
 
-Open **Settings → Reading appearance**, or the **Reading appearance** controls inside a book. Under **Page theme**, use the color wheel to choose a hue and saturation, adjust **Brightness**, and choose **Apply custom color**. The preview shows the selected background with automatically contrasting text. You can also enter an exact six-digit hex color such as `#dce8da`.
+Open **Settings → Reading appearance**, or **Reader settings** inside a book. Under **Page theme**, choose **Background** or **Font** above the shared color wheel, choose a hue and saturation, adjust **Brightness**, then choose **Apply background color** or **Apply font color**. The preview shows both colors together. You can also enter an exact six-digit hex color such as `#dce8da`. Applying a font color keeps the current page background; applying a background keeps your custom font color, if set. **Use automatic font color** restores contrasting black or white text.
 
 The wheel supports keyboard input: Left/Right changes hue, Up/Down changes saturation, and Shift makes larger adjustments. Brightness and hex color are keyboard-accessible too.
 
-Your applied color is saved on this device and used for every book in both reading modes. System, Light, Dark, and Sepia remain available, and switching to a preset retains your last custom color. The library and Settings keep their dark appearance.
+Your applied colors are saved on this device and used for every book in both reading modes. System, Light, Dark, and Sepia use their own colors and retain your last custom colors for reuse. The library and Settings keep their dark appearance.
 
 ## Develop
 

@@ -28,19 +28,27 @@ describe("persistent local library", () => {
     reopened.close();
   });
 
-  it("preserves custom page color across restart and preset switches", async () => {
+  it("preserves both custom colors across restart and presets, and persists automatic font reset", async () => {
     const database = await temporaryPath("library.sqlite");
     const repository = new LibraryRepository(database);
     const original = repository.getPreferences();
     expect(original.appearance.theme).toBe("system");
-    const appearance = { ...original.appearance, theme: "custom" as const, backgroundColor: "#173c69" };
+    expect(original.appearance.fontColor).toBeUndefined();
+    const appearance = { ...original.appearance, theme: "custom" as const, backgroundColor: "#173c69", fontColor: "#e1d5b8" };
     repository.savePreferences({ appearance });
     repository.close();
     const restarted = new LibraryRepository(database);
     expect(restarted.getPreferences().appearance).toEqual(appearance);
     restarted.savePreferences({ appearance: { ...appearance, theme: "sepia" } });
     expect(restarted.getPreferences().appearance).toEqual({ ...appearance, theme: "sepia" });
+    restarted.savePreferences({ mode: "paginated" });
+    expect(restarted.getPreferences().appearance.fontColor).toBe("#e1d5b8");
+    const { fontColor: _fontColor, ...automatic } = appearance;
+    restarted.savePreferences({ appearance: automatic });
     restarted.close();
+    const reopened = new LibraryRepository(database);
+    expect(reopened.getPreferences().appearance).toEqual(automatic);
+    reopened.close();
   });
 
   it("persists source references and normalized progress without copying the EPUB", async () => {

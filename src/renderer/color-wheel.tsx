@@ -1,17 +1,20 @@
 import React, { useEffect, useId, useState } from "react";
 import { customColors, hexToHsv, hsvToHex, type Hsv } from "./appearance";
 
-export function ColorWheel({ color, active, apply }: {
+export function ColorWheel({ color, active, apply, target = "background", backgroundColor = color, fontColor }: {
   color: string;
   active: boolean;
   apply: (color: string) => void;
+  target?: "background" | "font";
+  backgroundColor?: string;
+  fontColor?: string;
 }): React.ReactElement {
   const [hsv, setHsv] = useState(() => hexToHsv(color));
   const [hex, setHex] = useState(color);
   const helpId = useId();
   useEffect(() => { setHsv(hexToHsv(color)); setHex(color); }, [color]);
   const selected = hsvToHex(hsv);
-  const preview = customColors(selected);
+  const preview = customColors(target === "background" ? selected : backgroundColor, target === "font" ? selected : fontColor);
   function change(next: Hsv): void { setHsv(next); setHex(hsvToHex(next)); }
   function point(event: React.PointerEvent<HTMLButtonElement>): void {
     const bounds = event.currentTarget.getBoundingClientRect();
@@ -22,14 +25,14 @@ export function ColorWheel({ color, active, apply }: {
   const angle = hsv.hue * Math.PI / 180;
   return (
     <div className="custom-color-picker">
-      <p className="small" id={helpId}>Choose any page color. Use the wheel, adjust brightness, then apply.</p>
+      <p className="small" id={helpId}>Choose a {target} color. Use the wheel, adjust brightness, then apply.</p>
       <div className="color-picker-layout">
         <button
           type="button"
           className="color-wheel"
           role="slider"
           tabIndex={0}
-          aria-label="Background color wheel"
+          aria-label={`${target === "font" ? "Font" : "Background"} color wheel`}
           aria-describedby={helpId}
           aria-valuemin={0}
           aria-valuemax={359}
@@ -69,11 +72,11 @@ export function ColorWheel({ color, active, apply }: {
           </label>
           <div className="custom-color-preview" style={{ background: preview.background, color: preview.color }} aria-label={`Custom color preview ${selected}`}>Aa · Your page</div>
           <button type="button" className="btn" disabled={!/^#[0-9a-fA-F]{6}$/.test(hex) || (active && selected.toLowerCase() === color.toLowerCase())} onClick={() => apply(selected)}>
-            Apply custom color
+            Apply {target} color
           </button>
         </div>
       </div>
-      {active && <p className="small" role="status">Custom page color selected: {color}</p>}
+      {active && <p className="small" role="status">Custom {target} color selected: {color}</p>}
     </div>
   );
 }

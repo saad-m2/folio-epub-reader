@@ -503,7 +503,9 @@ export class ReaderAdapter {
       } catch { /* A missing font falls back to the system font without blocking reading. */ }
       ReaderAdapter.fontCss.set(family, fontFace);
     }
-    return `${fontFace} html, body { color: ${colors[0]} !important; background: ${colors[1]} !important; } body { font-family: '${family}', sans-serif !important; font-size: ${appearance.fontSize}px !important; line-height: ${appearance.lineHeight} !important; margin-left: ${appearance.margin}px !important; margin-right: ${appearance.margin}px !important; } p { margin-block: ${appearance.paragraphSpacing}em !important; } a { color: ${linkColors[0]} !important; ${appearance.theme === "custom" ? "text-decoration: underline !important;" : ""} } a:visited { color: ${linkColors[1]} !important; }`;
+    const fontColorOverride = appearance.theme === "custom" && appearance.fontColor
+      ? `body * { color: ${palette.color} !important; }` : "";
+    return `${fontFace} html, body { color: ${colors[0]} !important; background: ${colors[1]} !important; } ${fontColorOverride} body { font-family: '${family}', sans-serif !important; font-size: ${appearance.fontSize}px !important; line-height: ${appearance.lineHeight} !important; margin-left: ${appearance.margin}px !important; margin-right: ${appearance.margin}px !important; } p { margin-block: ${appearance.paragraphSpacing}em !important; } a { color: ${linkColors[0]} !important; ${appearance.theme === "custom" ? "text-decoration: underline !important;" : ""} } a:visited { color: ${linkColors[1]} !important; }`;
   }
 
   private async restore(location?: ReaderLocation): Promise<void> {

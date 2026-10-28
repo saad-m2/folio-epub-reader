@@ -1,7 +1,7 @@
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState } from "react";
 import type { Appearance, LibraryBook, PageLayout, ReaderMode } from "../shared/contracts";
 import { ColorWheel } from "./color-wheel";
-import { defaultBackground } from "./appearance";
+import { appearanceColors } from "./appearance";
 
 const paths: Record<string, React.ReactNode> = {
   book: (
@@ -148,6 +148,8 @@ export function AppearanceControls({
   update: (next: Appearance) => void;
   fonts: string[];
 }): React.ReactElement {
+  const [colorTarget, setColorTarget] = useState<"background" | "font">("background");
+  const palette = appearanceColors(appearance, window.matchMedia("(prefers-color-scheme: dark)").matches);
   const adjust = (key: keyof typeof bounds, direction: number): void => {
     const [min, max, step] = bounds[key];
     update({
@@ -176,11 +178,27 @@ export function AppearanceControls({
             </button>
           ))}
         </div>
+        <div className="segmented" role="group" aria-label="Color applies to">
+          <button type="button" aria-pressed={colorTarget === "background"} onClick={() => setColorTarget("background")}>Background</button>
+          <button type="button" aria-pressed={colorTarget === "font"} onClick={() => setColorTarget("font")}>Font</button>
+        </div>
         <ColorWheel
-          color={appearance.backgroundColor ?? defaultBackground}
-          active={appearance.theme === "custom"}
-          apply={backgroundColor => update({ ...appearance, theme: "custom", backgroundColor })}
+          key={colorTarget}
+          target={colorTarget}
+          color={colorTarget === "background" ? appearance.backgroundColor ?? palette.background : appearance.fontColor ?? palette.color}
+          backgroundColor={palette.background}
+          fontColor={appearance.fontColor}
+          active={appearance.theme === "custom" && (colorTarget === "background" || appearance.fontColor !== undefined)}
+          apply={color => update(colorTarget === "background"
+            ? { ...appearance, theme: "custom", backgroundColor: color }
+            : { ...appearance, theme: "custom", backgroundColor: palette.background, fontColor: color })}
         />
+        {colorTarget === "font" && appearance.fontColor !== undefined && (
+          <button type="button" className="btn" onClick={() => {
+            const { fontColor: _fontColor, ...automatic } = appearance;
+            update(automatic);
+          }}>Use automatic font color</button>
+        )}
       </fieldset>
       <label className="form-row">
         <span>Reading font</span>

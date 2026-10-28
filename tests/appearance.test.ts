@@ -11,7 +11,18 @@ describe("custom reading colors", () => {
     expect(AppearanceSchema.safeParse({ ...appearance, theme: "custom", backgroundColor: "#aB12ef" }).success).toBe(true);
     for (const backgroundColor of ["red", "#fff", "#ffffff00", "#ffffff; background: url(https://example.com)"]) {
       expect(AppearanceSchema.safeParse({ ...appearance, theme: "custom", backgroundColor }).success).toBe(false);
+      expect(AppearanceSchema.safeParse({ ...appearance, fontColor: backgroundColor }).success).toBe(false);
     }
+  });
+
+  it("uses the chosen font and link color only in the custom theme, with a safe automatic fallback", () => {
+    const custom = { ...appearance, theme: "custom" as const, backgroundColor: "#123456", fontColor: "#dce8da" };
+    expect(AppearanceSchema.safeParse(custom).success).toBe(true);
+    expect(appearanceColors(custom)).toEqual({ background: "#123456", color: "#dce8da", link: "#dce8da", visited: "#dce8da" });
+    for (const theme of ["light", "dark", "sepia", "system"] as const) {
+      expect(appearanceColors({ ...custom, theme })).toEqual(appearanceColors({ ...appearance, theme }));
+    }
+    expect(customColors("#123456", "red; color: red").color).toBe("#ffffff");
   });
 
   it("preserves exact RGB colors through wheel conversion including greys and endpoints", () => {

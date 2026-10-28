@@ -43,6 +43,7 @@ export type PageLayout = z.infer<typeof PageLayoutSchema>;
 export const AppearanceSchema = z.object({
   theme: z.enum(["system", "light", "dark", "sepia", "custom"]),
   backgroundColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+  fontColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   fontSize: z.number().min(12).max(36),
   margin: z.number().min(16).max(120),
   lineHeight: z.number().min(1.1).max(2.5),

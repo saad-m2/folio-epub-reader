@@ -32,6 +32,14 @@ Exercise Library, Reader, TOC, Appearance, Settings, translation overlay and err
 
 Run `pnpm test:packaged` on the recorded candidate/hardware. Retain measurements and investigate retention. The owner approved reasonable memory above the previous 500 MiB target: current conservative guards are 768 MiB ordinary and 1,024 MiB stress, with residual growth below 75 MiB after 20 cycles. The report records pre/post diagnostic-collection memory and heap data; forced collection is not a production fix.
 
+## 0.3.3 custom font color
+
+The owner approved the isolated development preview on 2026-10-28. Final 0.3.3 candidate type checking, all 324 tests across 24 files, and `pnpm package:release` passed, including production build, SBOM/license checks, a zero-advisory dependency audit, Squirrel packaging, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. Local evidence: `release-artifacts/dependency-verification.json`, `packaged-dependencies.json`, and `packaged-runtime.json` (`packaged: true`).
+
+The isolated development trusted-publication proof and all 12 development runtime fixtures also passed. The corpus verifies custom background/font colors and book-styled text in both reading modes. Real Electron checks covered one shared wheel, pointer/keyboard input, narrow Settings/reader layouts, saved-color restart persistence, automatic reset, reading-mode switching, and Escape/focus restoration.
+
+Hosted older-installed-version download/restart, real translation-provider/Ollama checks, Narrator, and physical display scaling remain unrun; existing personal-use deferrals remain in effect.
+
 ## 0.3.2 readability and scroll alignment
 
 The owner approved the isolated development preview and authorized publication on 2026-10-26. Final 0.3.2 type checking, all 322 tests across 24 files, and `pnpm package:release` passed, including SBOM/license checks, a zero-advisory dependency audit, Squirrel packaging, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. Local evidence: `release-artifacts/dependency-verification.json`, `packaged-dependencies.json`, and `packaged-runtime.json` (`packaged: true`).

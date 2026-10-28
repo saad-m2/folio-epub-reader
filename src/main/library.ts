@@ -168,9 +168,11 @@ export class LibraryRepository {
     const number = (key: string, fallback: number): number => Number(values.get(key) ?? fallback);
     const storedColor = values.get("readerBackgroundColor");
     const backgroundColor = storedColor && /^#[0-9a-fA-F]{6}$/.test(storedColor) ? storedColor : undefined;
+    const storedFontColor = values.get("readerFontColor");
+    const fontColor = storedFontColor && /^#[0-9a-fA-F]{6}$/.test(storedFontColor) ? storedFontColor : undefined;
     const storedTheme = values.get("readerTheme");
     const theme = storedTheme === "custom" ? (backgroundColor ? "custom" : "system") : storedTheme === "light" || storedTheme === "dark" || storedTheme === "sepia" ? storedTheme : "system";
-    return { mode: values.get("readerMode") === "paginated" ? "paginated" : "continuous", pageLayout: values.get("pageLayout") === "double" ? "double" : "single", appearance: { theme, ...(backgroundColor ? { backgroundColor } : {}), fontSize: number("fontSize", 18), margin: number("readerMargin", 48), lineHeight: number("lineHeight", 1.55), paragraphSpacing: number("paragraphSpacing", 0.75), fontFamily: values.get("fontFamily") ?? "Liberation Sans Reader" } };
+    return { mode: values.get("readerMode") === "paginated" ? "paginated" : "continuous", pageLayout: values.get("pageLayout") === "double" ? "double" : "single", appearance: { theme, ...(backgroundColor ? { backgroundColor } : {}), ...(fontColor ? { fontColor } : {}), fontSize: number("fontSize", 18), margin: number("readerMargin", 48), lineHeight: number("lineHeight", 1.55), paragraphSpacing: number("paragraphSpacing", 0.75), fontFamily: values.get("fontFamily") ?? "Liberation Sans Reader" } };
   }
 
   savePreferences(input: Partial<{ mode: ReaderMode; pageLayout: "single" | "double"; appearance: Appearance }>): void {
@@ -180,6 +182,10 @@ export class LibraryRepository {
       if (input.mode) update("readerMode", input.mode);
       if (input.pageLayout) update("pageLayout", input.pageLayout);
       if (input.appearance?.backgroundColor) update("readerBackgroundColor", input.appearance.backgroundColor);
+      if (input.appearance) {
+        if (input.appearance.fontColor) update("readerFontColor", input.appearance.fontColor);
+        else this.db.prepare("DELETE FROM preferences WHERE key = ?").run("readerFontColor");
+      }
       if (input.appearance) for (const [key, value] of Object.entries({ readerTheme: input.appearance.theme, fontSize: input.appearance.fontSize, readerMargin: input.appearance.margin, lineHeight: input.appearance.lineHeight, paragraphSpacing: input.appearance.paragraphSpacing, fontFamily: input.appearance.fontFamily })) update(key, String(value));
       this.db.exec("COMMIT");
     } catch (error) { this.db.exec("ROLLBACK"); throw error; }
