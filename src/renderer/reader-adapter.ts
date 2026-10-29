@@ -355,7 +355,15 @@ export class ReaderAdapter {
     this.frameCleanups.get(document)?.();
     let press: { x: number; y: number } | undefined;
     const onMouseDown = (event: MouseEvent): void => {
+      if (operation !== this.operation) return;
       press = event.button === 0 ? { x: event.clientX, y: event.clientY } : undefined;
+      const target = event.target as Element | null;
+      if (event.button === 0 && !target?.closest?.("a[href]") &&
+          !isTextAtPoint(document, event.clientX, event.clientY)) {
+        // Chromium can select nearby words/paragraphs on repeated margin presses.
+        // Cancel selection at its start; the subsequent click still navigates.
+        event.preventDefault();
+      }
     };
     const onSelectionChange = (): void => {
       if (operation === this.operation) this.captureSelection(contents);

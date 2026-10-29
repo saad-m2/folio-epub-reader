@@ -573,6 +573,9 @@ describe("ReaderAdapter", () => {
     for (const [x, zone] of [[50, "left"], [500, "center"], [950, "right"]] as const) {
       rects = [{ left: x - 10, right: x + 10, top: 20, bottom: 40, width: 20, height: 20 } as DOMRect];
       for (const detail of [1, 2, 3]) {
+        const press = new MouseEvent("mousedown", { bubbles: true, cancelable: true, clientX: x, clientY: 30, detail });
+        expect(text.dispatchEvent(press)).toBe(true);
+        expect(press.defaultPrevented).toBe(false);
         const click = new MouseEvent("click", { bubbles: true, cancelable: true, clientX: x, clientY: 30, detail });
         expect(text.dispatchEvent(click)).toBe(true);
         expect(click.defaultPrevented).toBe(false);
@@ -581,6 +584,17 @@ describe("ReaderAdapter", () => {
       // The caret API also returns nearby text for blank space below a line.
       text.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: x, clientY: 60 }));
       expect(interactions).toHaveBeenCalledExactlyOnceWith({ kind: "reader-click", zone });
+      interactions.mockClear();
+      // Repeated margin presses must not start Chromium's native word/line
+      // selection, but every following click must still reach the reader.
+      for (const detail of [1, 2, 3]) {
+        const press = new MouseEvent("mousedown", { bubbles: true, cancelable: true, clientX: x, clientY: 60, detail });
+        expect(text.dispatchEvent(press)).toBe(false);
+        expect(press.defaultPrevented).toBe(true);
+        text.dispatchEvent(new MouseEvent("click", { bubbles: true, clientX: x, clientY: 60, detail }));
+        expect(interactions).toHaveBeenLastCalledWith({ kind: "reader-click", zone });
+      }
+      expect(interactions).toHaveBeenCalledTimes(3);
       interactions.mockClear();
     }
     for (const type of ["mousedown", "mousemove", "mouseup", "contextmenu", "auxclick"]) {
@@ -631,6 +645,7 @@ describe("ReaderAdapter", () => {
     adapter.subscribeExternalLink(links);
     adapter.subscribeInteraction(interactions);
     const external = frameDoc.querySelector("a")!;
+    expect(external.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }))).toBe(true);
     const click = new MouseEvent("click", { bubbles: true, cancelable: true });
     expect(external.dispatchEvent(click)).toBe(false);
     expect(links).toHaveBeenCalledWith("https://example.org/essay");
