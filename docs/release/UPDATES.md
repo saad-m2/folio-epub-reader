@@ -4,7 +4,7 @@
 
 The app is named **Leaf** (formerly Folio). The frontend, window title, About screen, Windows product metadata, and installer display title use Leaf. The internal npm/package name, executable and Squirrel IDs, `WindowsEpubReaderSetup.exe` filename, existing data directory, and configured `saad-m2/folio-epub-reader` release repository remain stable so existing installs retain their library and upgrade path. The GitHub repository has not been renamed. Historical documentation retains the names used when it was written.
 
-## Install version 0.3.3
+## Install version 0.3.4
 
 Close Leaf (or the older Folio/Windows EPUB Reader build) and run `WindowsEpubReaderSetup.exe`. This is a per-user Squirrel upgrade from earlier versions, including 0.2.3; it keeps the installer identity and the data directory `%LOCALAPPDATA%\Windows EPUB Reader\Data`. Books remain in their original locations. Reading positions, preferences, and downloaded fonts live outside the versioned application directory.
 
@@ -29,6 +29,14 @@ The repository must be public and have published, non-prerelease GitHub Releases
 ## Developer release procedure
 
 For integration, versioning, packaging, publication, and installed-update verification, follow the [release workflow](../workflow/RELEASE-WORKFLOW.md).
+
+## 0.3.4 changes and qualification
+
+Book text clicks now preserve native selection without turning pages or toggling reader controls. Blank left/right clicks still turn pages in Page by page mode, including after a selection; repeated margin clicks no longer select nearby lines. Drags starting on text, native context menus, and links retain their behavior.
+
+The owner approved the isolated Electron preview on 2026-10-29. Final 0.3.4 candidate type checking, all 326 tests across 24 files, and `pnpm package:release` passed, including production build, SBOM/license checks, a zero-advisory dependency audit, Squirrel installer creation, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification.
+
+Hosted older-installed-version download/restart, real translation-provider/Ollama checks, Narrator, and physical Windows display-scaling checks remain unrun for this release; the existing personal-use qualification scope remains in effect.
 
 ## 0.3.3 changes and qualification
 

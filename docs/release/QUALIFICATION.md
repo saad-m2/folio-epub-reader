@@ -32,6 +32,12 @@ Exercise Library, Reader, TOC, Appearance, Settings, translation overlay and err
 
 Run `pnpm test:packaged` on the recorded candidate/hardware. Retain measurements and investigate retention. The owner approved reasonable memory above the previous 500 MiB target: current conservative guards are 768 MiB ordinary and 1,024 MiB stress, with residual growth below 75 MiB after 20 cycles. The report records pre/post diagnostic-collection memory and heap data; forced collection is not a production fix.
 
+## 0.3.4 reader text and blank-area clicks
+
+The owner approved the isolated Electron preview on 2026-10-29 after checking text selection, blank-side page turns, and repeated margin clicks without unwanted highlighting. Final 0.3.4 candidate type checking, all 326 tests across 24 files, and `pnpm package:release` passed, including production build, SBOM/license checks, a zero-advisory dependency audit, Squirrel packaging, packaged dependency verification, all 12 isolated packaged runtime fixtures without performance failures, and final installer verification. Local evidence: `release-artifacts/dependency-verification.json`, `packaged-dependencies.json`, and `packaged-runtime.json` (`packaged: true`).
+
+The final reader-adapter regressions cover text presses/clicks, repeated blank-area presses and navigation, drags ending in a margin, active-selection dismissal, outer reader surfaces, links, and listener cleanup. The Electron corpus checks real text geometry in continuous, single-page, and two-page layouts. These automated checks and the owner's preview approval do not establish the hosted older-installed-version download/restart flow, real translation-provider/Ollama behavior, Narrator, or physical display scaling; existing personal-use deferrals remain in effect.
+
 ## 0.3.3 custom font color
 
 The owner approved the isolated development preview on 2026-10-28. Final 0.3.3 candidate type checking, all 324 tests across 24 files, and `pnpm package:release` passed, including production build, SBOM/license checks, a zero-advisory dependency audit, Squirrel packaging, packaged dependency verification, all 12 isolated packaged runtime fixtures, and final installer verification. Local evidence: `release-artifacts/dependency-verification.json`, `packaged-dependencies.json`, and `packaged-runtime.json` (`packaged: true`).
